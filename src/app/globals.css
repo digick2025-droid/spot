@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/*
+ * Design system SPOT (source : maquette SPOT_Prototype__autonome_.html)
+ * Espaces Participant/Creator = thème sombre · Espace Organisateur/Admin = thème clair
+ */
+@theme {
+  /* Fonds sombres */
+  --color-ink: #0b0b0f; /* fond principal */
+  --color-card: #18181b; /* cartes */
+
+  /* Marque */
+  --color-brand: #ff6b35; /* orange SPOT */
+  --color-brand-deep: #c2410c;
+  --color-accent: #8b5cf6; /* violet accent */
+  --color-accent-deep: #4c1d95;
+
+  /* Texte */
+  --color-mist: #a1a1aa; /* gris clair */
+  --color-smoke: #71717a; /* gris moyen */
+  --color-fog: #e4e4e7;
+
+  /* Thème clair (Organisateur / Admin) */
+  --color-paper: #fafafa;
+  --color-paper-card: #ffffff;
+
+  /* États */
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+
+  /* Typographies */
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-ink);
+  color: #ffffff;
+  font-family: var(--font-sans);
+}
+
+/* Point orange animé du logo SP●T */
+@keyframes spot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.75;
+  }
+}
+
+.spot-dot {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 9999px;
+  background: var(--color-brand);
+  animation: spot-pulse 1.8s ease-in-out infinite;
+}
