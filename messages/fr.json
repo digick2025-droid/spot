@@ -116,5 +116,29 @@
     "copy": "Copier",
     "copied": "Copié ✓",
     "abonnes": "Abonnés"
+  },
+  "auth": {
+    "title": "Connexion",
+    "subtitle": "On t'envoie un code à 6 chiffres. Pas de mot de passe à retenir.",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "toi@exemple.cm",
+    "sendCode": "Recevoir mon code",
+    "sending": "Envoi…",
+    "codeLabel": "Code à 6 chiffres",
+    "codePlaceholder": "000000",
+    "verify": "Me connecter",
+    "verifying": "Vérification…",
+    "codeSent": "Code envoyé à {email}. Il expire dans 1 heure.",
+    "codeResent": "Nouveau code envoyé.",
+    "resend": "Renvoyer le code",
+    "changeEmail": "Modifier l'adresse",
+    "signOut": "Se déconnecter",
+    "errors": {
+      "invalidEmail": "Cette adresse e-mail n'est pas valide.",
+      "invalidCode": "Le code doit contenir exactement 6 chiffres.",
+      "wrongCode": "Code incorrect ou expiré. Demande un nouveau code.",
+      "sendFailed": "Envoi impossible pour le moment. Réessaie dans un instant.",
+      "tooManyRequests": "Trop de tentatives. Patiente une minute avant de réessayer."
+    }
   }
 }

@@ -116,5 +116,29 @@
     "copy": "Copy",
     "copied": "Copied ✓",
     "abonnes": "Followers"
+  },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "We'll send you a 6-digit code. No password to remember.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.cm",
+    "sendCode": "Send my code",
+    "sending": "Sending…",
+    "codeLabel": "6-digit code",
+    "codePlaceholder": "000000",
+    "verify": "Sign in",
+    "verifying": "Verifying…",
+    "codeSent": "Code sent to {email}. It expires in 1 hour.",
+    "codeResent": "New code sent.",
+    "resend": "Resend code",
+    "changeEmail": "Change address",
+    "signOut": "Sign out",
+    "errors": {
+      "invalidEmail": "That email address is not valid.",
+      "invalidCode": "The code must be exactly 6 digits.",
+      "wrongCode": "Wrong or expired code. Request a new one.",
+      "sendFailed": "Could not send right now. Please try again shortly.",
+      "tooManyRequests": "Too many attempts. Wait a minute before retrying."
+    }
   }
 }
