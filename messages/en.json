@@ -218,5 +218,32 @@
     "qrHint": "Show this code at the door. Do not share it: it is your ticket.",
     "backToTickets": "Back to my tickets",
     "notFound": "Ticket not found"
+  },
+  "scan": {
+    "title": "Scan",
+    "chooseEvent": "Pick the event to check in",
+    "noEvents": "You do not organize any event.",
+    "noEventsHint": "Scanning is reserved to the event organizer.",
+    "scanned": "Scanned",
+    "ofTotal": "of {total}",
+    "startCamera": "Enable camera",
+    "stopCamera": "Stop camera",
+    "cameraUnsupported": "Automatic reading is not available on this browser. Enter the ticket code below.",
+    "cameraDenied": "Camera access denied. Enter the ticket code below.",
+    "manualLabel": "Ticket code",
+    "manualHint": "Type the code printed under the QR if the camera cannot read it.",
+    "validate": "Validate",
+    "validating": "Checking…",
+    "backToEvents": "Change event",
+    "results": {
+      "ok": "Valid ticket — entry allowed",
+      "already_used": "Ticket already scanned",
+      "void": "Ticket cancelled",
+      "wrong_event": "Ticket for another event",
+      "not_found": "Unknown ticket",
+      "forbidden": "You do not organize this event",
+      "empty": "No code provided",
+      "scannedAt": "Scanned at {time}"
+    }
   }
 }

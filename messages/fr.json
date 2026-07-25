@@ -218,5 +218,32 @@
     "qrHint": "Présente ce code à l'entrée. Ne le partage pas : il vaut ton billet.",
     "backToTickets": "Retour à mes billets",
     "notFound": "Billet introuvable"
+  },
+  "scan": {
+    "title": "Scan",
+    "chooseEvent": "Choisis l'événement à contrôler",
+    "noEvents": "Tu n'organises aucun événement.",
+    "noEventsHint": "Le scan est réservé à l'organisateur de l'événement.",
+    "scanned": "Scannés",
+    "ofTotal": "sur {total}",
+    "startCamera": "Activer la caméra",
+    "stopCamera": "Arrêter la caméra",
+    "cameraUnsupported": "La lecture automatique n'est pas disponible sur ce navigateur. Saisis le code du billet ci-dessous.",
+    "cameraDenied": "Accès caméra refusé. Saisis le code du billet ci-dessous.",
+    "manualLabel": "Code du billet",
+    "manualHint": "Saisis le code imprimé sous le QR si la caméra ne peut pas lire.",
+    "validate": "Valider",
+    "validating": "Vérification…",
+    "backToEvents": "Changer d'événement",
+    "results": {
+      "ok": "Billet valide — entrée autorisée",
+      "already_used": "Billet déjà scanné",
+      "void": "Billet annulé",
+      "wrong_event": "Billet d'un autre événement",
+      "not_found": "Billet inconnu",
+      "forbidden": "Tu n'organises pas cet événement",
+      "empty": "Aucun code fourni",
+      "scannedAt": "Scanné à {time}"
+    }
   }
 }
