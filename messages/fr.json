@@ -140,5 +140,33 @@
       "sendFailed": "Envoi impossible pour le moment. Réessaie dans un instant.",
       "tooManyRequests": "Trop de tentatives. Patiente une minute avant de réessayer."
     }
+  },
+  "events": {
+    "discover": "Découvrir",
+    "popular": "Événements populaires",
+    "allCities": "Toutes les villes",
+    "allCategories": "Toutes catégories",
+    "searchPlaceholder": "Rechercher un événement, un lieu…",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "noResults": "Aucun événement ne correspond à ta recherche.",
+    "noResultsHint": "Essaie une autre ville ou une autre catégorie.",
+    "empty": "Aucun événement à venir pour le moment.",
+    "fromPrice": "Dès {price}",
+    "freeEntry": "Entrée libre",
+    "resultCount": "{count, plural, =0 {Aucun événement} one {# événement} other {# événements}}",
+    "organizers": "Organisateurs à suivre",
+    "seeAll": "Tout voir",
+    "backToEvents": "Retour aux événements",
+    "chooseTicket": "Choisis ton billet",
+    "quantity": "Quantité",
+    "total": "Total",
+    "soldOut": "Complet",
+    "remaining": "{count} restants",
+    "buy": "Acheter",
+    "signInToBuy": "Se connecter pour acheter",
+    "aboutEvent": "À propos",
+    "notFound": "Événement introuvable",
+    "notFoundHint": "Il a peut-être été retiré ou l'adresse est incorrecte."
   }
 }

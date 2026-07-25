@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
+import { EventCard } from "@/components/event-card";
+import { listEvents } from "@/lib/db/events";
 
 // Vérifie que l'instance Supabase répond (page de démonstration Phase 0).
 async function checkSupabase(): Promise<boolean> {
@@ -38,7 +40,11 @@ export default async function HomePage({
   }
   const t = await getTranslations("home");
   const tApp = await getTranslations("app");
-  const supabaseOk = await checkSupabase();
+  const tEvents = await getTranslations("events");
+  const [supabaseOk, popularEvents] = await Promise.all([
+    checkSupabase(),
+    listEvents({ limit: 4 }),
+  ]);
 
   return (
     <main className="relative flex-1 overflow-hidden">
@@ -104,6 +110,33 @@ export default async function HomePage({
           <div className="mt-6 flex items-center gap-3 rounded-2xl border border-accent/35 bg-card px-4 py-3 text-[13px]">
             🔥 <span>{tApp("notif")}</span>
           </div>
+        </section>
+
+        {/* Événements populaires */}
+        <section className="mt-12">
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-display text-[15px] font-extrabold">
+              {tEvents("popular")}
+            </h2>
+            <Link
+              href="/decouvrir"
+              className="text-[13px] font-semibold text-brand hover:underline"
+            >
+              {tEvents("seeAll")} →
+            </Link>
+          </div>
+
+          {popularEvents.length === 0 ? (
+            <p className="mt-4 rounded-[20px] border border-white/10 bg-card p-6 text-center text-[14px] text-mist">
+              {tEvents("empty")}
+            </p>
+          ) : (
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {popularEvents.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Les 4 espaces */}

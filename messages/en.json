@@ -140,5 +140,33 @@
       "sendFailed": "Could not send right now. Please try again shortly.",
       "tooManyRequests": "Too many attempts. Wait a minute before retrying."
     }
+  },
+  "events": {
+    "discover": "Discover",
+    "popular": "Popular events",
+    "allCities": "All cities",
+    "allCategories": "All categories",
+    "searchPlaceholder": "Search an event, a venue…",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No event matches your search.",
+    "noResultsHint": "Try another city or another category.",
+    "empty": "No upcoming events right now.",
+    "fromPrice": "From {price}",
+    "freeEntry": "Free entry",
+    "resultCount": "{count, plural, =0 {No events} one {# event} other {# events}}",
+    "organizers": "Organizers to follow",
+    "seeAll": "See all",
+    "backToEvents": "Back to events",
+    "chooseTicket": "Choose your ticket",
+    "quantity": "Quantity",
+    "total": "Total",
+    "soldOut": "Sold out",
+    "remaining": "{count} left",
+    "buy": "Buy",
+    "signInToBuy": "Sign in to buy",
+    "aboutEvent": "About",
+    "notFound": "Event not found",
+    "notFoundHint": "It may have been removed, or the address is wrong."
   }
 }
