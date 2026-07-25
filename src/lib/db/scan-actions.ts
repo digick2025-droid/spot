@@ -3,22 +3,8 @@
 import { getTranslations } from "next-intl/server";
 import { requireProfile } from "@/lib/auth/dal";
 import { parseTicketPayload } from "@/lib/qr";
-import { scanTicket, type ScanOutcome } from "./scan";
-
-export type ScanState = {
-  outcome: ScanOutcome | null;
-  message: string;
-  detail: string | null;
-  /** Horodatage pour forcer le rendu même sur deux résultats identiques. */
-  at: number;
-};
-
-export const initialScanState: ScanState = {
-  outcome: null,
-  message: "",
-  detail: null,
-  at: 0,
-};
+import { scanTicket } from "./scan";
+import type { ScanState } from "./scan-state";
 
 /**
  * Valide un billet scanné ou saisi à la main.

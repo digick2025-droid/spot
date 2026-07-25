@@ -11,9 +11,7 @@ import {
   operatorFromPhone,
   type PaymentChannel,
 } from "@/lib/payments";
-
-export type CheckoutState = { error?: string };
-export const initialCheckoutState: CheckoutState = {};
+import type { CheckoutState } from "./state";
 
 const schema = z.object({
   eventSlug: z.string().min(1),

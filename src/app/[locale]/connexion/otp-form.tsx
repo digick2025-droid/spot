@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
-import { submitAuth, initialAuthState } from "@/lib/auth/actions";
+import { submitAuth } from "@/lib/auth/actions";
+import { initialAuthState } from "@/lib/auth/state";
 
 export function OtpForm() {
   const t = useTranslations("auth");

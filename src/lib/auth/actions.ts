@@ -5,16 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "@/i18n/navigation";
 import { requireProfile } from "./dal";
-
-export type AuthState = {
-  /** Étape affichée : saisie de l'e-mail, puis saisie du code reçu. */
-  step: "email" | "code";
-  email?: string;
-  error?: string;
-  notice?: string;
-};
-
-export const initialAuthState: AuthState = { step: "email" };
+import { initialAuthState, type AuthState } from "./state";
 
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
 const codeSchema = z

@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { startPayment, initialCheckoutState } from "@/lib/payments/actions";
+import { startPayment } from "@/lib/payments/actions";
+import { initialCheckoutState } from "@/lib/payments/state";
 
 const CHANNELS = [
   { value: "mtn_momo", labelKey: "mtn", emoji: "📱", accent: "#FFCC00" },

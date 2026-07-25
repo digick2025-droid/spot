@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { submitScan, initialScanState } from "@/lib/db/scan-actions";
+import { submitScan } from "@/lib/db/scan-actions";
+import { initialScanState } from "@/lib/db/scan-state";
 
 /**
  * BarcodeDetector n'est pas dans lib.dom : Chrome et Edge l'implémentent,
