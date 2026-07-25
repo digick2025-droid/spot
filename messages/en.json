@@ -203,5 +203,20 @@
       "unavailable": "Payment is unavailable right now. Please try again shortly.",
       "notFound": "Order not found."
     }
+  },
+  "tickets": {
+    "title": "My tickets",
+    "empty": "You have no tickets yet.",
+    "emptyHint": "Browse events and book your seat.",
+    "browse": "Browse events",
+    "valid": "Valid",
+    "used": "Already scanned",
+    "void": "Cancelled",
+    "scannedAt": "Scanned on {date}",
+    "showQr": "Show QR",
+    "ticketCode": "Ticket code",
+    "qrHint": "Show this code at the door. Do not share it: it is your ticket.",
+    "backToTickets": "Back to my tickets",
+    "notFound": "Ticket not found"
   }
 }

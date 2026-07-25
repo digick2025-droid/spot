@@ -203,5 +203,20 @@
       "unavailable": "Le paiement est indisponible pour le moment. Réessaie dans un instant.",
       "notFound": "Commande introuvable."
     }
+  },
+  "tickets": {
+    "title": "Mes billets",
+    "empty": "Tu n'as pas encore de billet.",
+    "emptyHint": "Découvre les événements et réserve ta place.",
+    "browse": "Découvrir les événements",
+    "valid": "Valide",
+    "used": "Déjà scanné",
+    "void": "Annulé",
+    "scannedAt": "Scanné le {date}",
+    "showQr": "Afficher le QR",
+    "ticketCode": "Code billet",
+    "qrHint": "Présente ce code à l'entrée. Ne le partage pas : il vaut ton billet.",
+    "backToTickets": "Retour à mes billets",
+    "notFound": "Billet introuvable"
   }
 }
