@@ -168,5 +168,40 @@
     "aboutEvent": "About",
     "notFound": "Event not found",
     "notFoundHint": "It may have been removed, or the address is wrong."
+  },
+  "checkout": {
+    "title": "Payment",
+    "summary": "Summary",
+    "payWith": "Pay with",
+    "mtn": "MTN Mobile Money",
+    "orange": "Orange Money",
+    "phoneLabel": "Mobile Money number",
+    "phoneHint": "The number that will receive the payment request.",
+    "pay": "Pay {total}",
+    "paying": "Sending request…",
+    "ticket": "Ticket",
+    "quantity": "Quantity",
+    "total": "Total",
+    "orderRef": "Reference",
+    "statusPending": "Payment pending",
+    "statusPendingHint": "Dial the confirmation code on your phone. This page updates by itself.",
+    "statusPaid": "Payment confirmed",
+    "statusPaidHint": "Your tickets are issued. Find them in My tickets.",
+    "statusFailed": "Payment failed",
+    "statusFailedHint": "Nothing was charged. You can try again.",
+    "seeTickets": "See my tickets",
+    "retry": "Try again",
+    "refresh": "Refresh",
+    "devSimulate": "Simulate webhook (development)",
+    "devSimulatePaid": "Confirm payment",
+    "devSimulateFailed": "Fail payment",
+    "devNote": "Mock provider: no real payment. These buttons send a signed webhook, just like Campay would.",
+    "errors": {
+      "invalidForm": "Incomplete or invalid form.",
+      "invalidPhone": "Invalid number: 9 digits starting with 6 expected.",
+      "channelMismatch": "That is a {operator} number. Pick the matching operator.",
+      "unavailable": "Payment is unavailable right now. Please try again shortly.",
+      "notFound": "Order not found."
+    }
   }
 }

@@ -168,5 +168,40 @@
     "aboutEvent": "À propos",
     "notFound": "Événement introuvable",
     "notFoundHint": "Il a peut-être été retiré ou l'adresse est incorrecte."
+  },
+  "checkout": {
+    "title": "Paiement",
+    "summary": "Récapitulatif",
+    "payWith": "Payer avec",
+    "mtn": "MTN Mobile Money",
+    "orange": "Orange Money",
+    "phoneLabel": "Numéro Mobile Money",
+    "phoneHint": "Le numéro qui recevra la demande de paiement.",
+    "pay": "Payer {total}",
+    "paying": "Envoi de la demande…",
+    "ticket": "Billet",
+    "quantity": "Quantité",
+    "total": "Total",
+    "orderRef": "Référence",
+    "statusPending": "Paiement en attente",
+    "statusPendingHint": "Compose le code de confirmation sur ton téléphone. Cette page se met à jour toute seule.",
+    "statusPaid": "Paiement confirmé",
+    "statusPaidHint": "Tes billets sont émis. Retrouve-les dans Mes billets.",
+    "statusFailed": "Paiement échoué",
+    "statusFailedHint": "Aucun montant n'a été débité. Tu peux réessayer.",
+    "seeTickets": "Voir mes billets",
+    "retry": "Réessayer",
+    "refresh": "Actualiser",
+    "devSimulate": "Simuler le webhook (développement)",
+    "devSimulatePaid": "Confirmer le paiement",
+    "devSimulateFailed": "Faire échouer le paiement",
+    "devNote": "Provider « mock » : aucun paiement réel. Ces boutons envoient un webhook signé, comme le ferait Campay.",
+    "errors": {
+      "invalidForm": "Formulaire incomplet ou invalide.",
+      "invalidPhone": "Numéro invalide : 9 chiffres commençant par 6 attendus.",
+      "channelMismatch": "Ce numéro est un numéro {operator}. Choisis l'opérateur correspondant.",
+      "unavailable": "Le paiement est indisponible pour le moment. Réessaie dans un instant.",
+      "notFound": "Commande introuvable."
+    }
   }
 }
