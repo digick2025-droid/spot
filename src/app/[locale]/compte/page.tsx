@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { requireProfile } from "@/lib/auth/dal";
 import { signOut } from "@/lib/auth/actions";
@@ -22,6 +23,7 @@ export default async function AccountPage({
   const profile = await requireProfile();
   const t = await getTranslations("app");
   const tAuth = await getTranslations("auth");
+  const tOrganizer = await getTranslations("organizer");
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
@@ -47,6 +49,29 @@ export default async function AccountPage({
           )}
         </div>
       </div>
+
+      <Link
+        href="/organisateur"
+        className="mt-3 flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-5 transition-colors hover:border-brand/50"
+      >
+        <span
+          aria-hidden
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/15 text-xl"
+        >
+          🎪
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="font-display block text-[15px] font-extrabold">
+            {t("orgSpace")}
+          </span>
+          <span className="mt-0.5 block text-[13px] text-mist">
+            {tOrganizer("openSpace")}
+          </span>
+        </span>
+        <span aria-hidden className="text-mist">
+          →
+        </span>
+      </Link>
 
       <form action={signOut} className="mt-6">
         <button
