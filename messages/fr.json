@@ -3,24 +3,6 @@
     "title": "SPOT — Les événements qui bougent",
     "description": "La plateforme camerounaise de découverte d'événements et de billetterie. Douala · Yaoundé · Mobile Money."
   },
-  "home": {
-    "phaseBadge": "Phase 0 — Fondations",
-    "tagline": "La plateforme camerounaise de découverte d'événements et de billetterie.",
-    "spacesTitle": "4 espaces, une seule plateforme",
-    "participantTitle": "Participant",
-    "participantDesc": "Découvre, achète tes billets et collectionne tes moments avec le SPOT PASS.",
-    "organizerTitle": "Organisateur",
-    "organizerDesc": "Crée tes événements, vends tes billets, scanne les entrées et suis tes revenus.",
-    "creatorTitle": "Creator",
-    "creatorDesc": "Promeus les événements avec ton lien affilié et touche tes commissions.",
-    "adminTitle": "Admin",
-    "adminDesc": "Supervise la plateforme : commissions, catégories, villes et exports.",
-    "paymentNote": "MTN Mobile Money · Orange Money · FCFA",
-    "citiesNote": "Douala · Yaoundé",
-    "supabaseOk": "Supabase connecté",
-    "supabaseKo": "Supabase non configuré",
-    "footer": "SPOT — Prototype en construction. Phase 0 : fondations techniques."
-  },
   "app": {
     "hello": "Salut",
     "heroA": "Les événements",

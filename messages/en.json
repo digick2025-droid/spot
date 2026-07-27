@@ -3,24 +3,6 @@
     "title": "SPOT — The events moving your city",
     "description": "Cameroon's event discovery and ticketing platform. Douala · Yaoundé · Mobile Money."
   },
-  "home": {
-    "phaseBadge": "Phase 0 — Foundations",
-    "tagline": "Cameroon's event discovery and ticketing platform.",
-    "spacesTitle": "4 spaces, one platform",
-    "participantTitle": "Attendee",
-    "participantDesc": "Discover, buy tickets and collect your moments with the SPOT PASS.",
-    "organizerTitle": "Organizer",
-    "organizerDesc": "Create events, sell tickets, scan entries and track your revenue.",
-    "creatorTitle": "Creator",
-    "creatorDesc": "Promote events with your affiliate link and earn commissions.",
-    "adminTitle": "Admin",
-    "adminDesc": "Oversee the platform: commissions, categories, cities and exports.",
-    "paymentNote": "MTN Mobile Money · Orange Money · FCFA",
-    "citiesNote": "Douala · Yaoundé",
-    "supabaseOk": "Supabase connected",
-    "supabaseKo": "Supabase not configured",
-    "footer": "SPOT — Prototype under construction. Phase 0: technical foundations."
-  },
   "app": {
     "hello": "Hey",
     "heroA": "The events",

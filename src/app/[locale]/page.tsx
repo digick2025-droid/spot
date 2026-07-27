@@ -1,33 +1,20 @@
-import { setRequestLocale } from "next-intl/server";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { routing } from "@/i18n/routing";
+import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { EventCard } from "@/components/event-card";
-import { listEvents } from "@/lib/db/events";
+import { getProfile } from "@/lib/auth/dal";
+import { listCategories, listEvents } from "@/lib/db/events";
+import { listHomeOrganizers } from "@/lib/db/organizers";
+import { toggleFollow } from "@/lib/db/follow-actions";
 
-// Vérifie que l'instance Supabase répond (page de démonstration Phase 0).
-async function checkSupabase(): Promise<boolean> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return false;
-  try {
-    const res = await fetch(`${url}/auth/v1/health`, {
-      headers: { apikey: key },
-      next: { revalidate: 60 },
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+const FALLBACK_GRADIENT = "linear-gradient(135deg,#FF6B35,#C2410C)";
+
+/** Prénom affiché dans la salutation, à défaut le début de l'adresse. */
+function displayName(fullName: string | null, email: string | null): string {
+  const source = fullName?.trim() || email?.split("@")[0] || "";
+  return source.split(" ")[0];
 }
-
-const SPACES = [
-  { emoji: "🎟", titleKey: "participantTitle", descKey: "participantDesc" },
-  { emoji: "📊", titleKey: "organizerTitle", descKey: "organizerDesc" },
-  { emoji: "📣", titleKey: "creatorTitle", descKey: "creatorDesc" },
-  { emoji: "🛠", titleKey: "adminTitle", descKey: "adminDesc" },
-] as const;
 
 export default async function HomePage({
   params,
@@ -38,13 +25,19 @@ export default async function HomePage({
   if (hasLocale(routing.locales, locale)) {
     setRequestLocale(locale);
   }
-  const t = await getTranslations("home");
-  const tApp = await getTranslations("app");
+
+  const t = await getTranslations("app");
   const tEvents = await getTranslations("events");
-  const [supabaseOk, popularEvents] = await Promise.all([
-    checkSupabase(),
+  const activeLocale = (await getLocale()) as Locale;
+
+  const [profile, popularEvents, categories, organizers] = await Promise.all([
+    getProfile(),
     listEvents({ limit: 4 }),
+    listCategories(),
+    listHomeOrganizers(),
   ]);
+
+  const name = profile ? displayName(profile.full_name, profile.email) : "";
 
   return (
     <main className="relative flex-1 overflow-hidden">
@@ -65,28 +58,45 @@ export default async function HomePage({
       />
 
       <div className="relative mx-auto flex w-full max-w-3xl flex-col px-6 py-8">
-        {/* Héros */}
-        <section className="mt-6">
-          <span className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-card px-4 py-1.5 text-xs font-semibold text-fog">
-            ⚡ {t("phaseBadge")}
-          </span>
-          <h1 className="font-display mt-6 text-4xl font-extrabold uppercase leading-[1.08] tracking-tight sm:text-5xl">
-            {tApp("heroA")}
-            <br />
-            {tApp("heroB")}
-            <br />
-            <span className="text-brand">{tApp("heroC")}</span>
-          </h1>
-          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-mist">
-            {t("tagline")}
-          </p>
-          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-accent/35 bg-card px-4 py-3 text-[13px]">
-            🔥 <span>{tApp("notif")}</span>
+        {profile && (
+          <div className="flex items-center gap-3">
+            <p className="flex-1 text-[15px] font-semibold text-mist">
+              {t("hello")} {name} 👋
+            </p>
+            <span
+              aria-hidden
+              className="font-display flex h-[42px] w-[42px] items-center justify-center rounded-full bg-brand text-[16px] font-extrabold text-ink"
+            >
+              {name.charAt(0).toUpperCase()}
+            </span>
           </div>
+        )}
+
+        {/* Héros */}
+        <section className={profile ? "mt-4" : "mt-6"}>
+          <h1 className="font-display text-4xl font-extrabold uppercase leading-[1.08] tracking-tight sm:text-5xl">
+            {t("heroA")}
+            <br />
+            {t("heroB")}
+            <br />
+            <span className="text-brand">{t("heroC")}</span>
+          </h1>
+
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-accent/35 bg-card px-4 py-3 text-[13px]">
+            🔥 <span>{t("notif")}</span>
+          </div>
+
+          <Link
+            href="/decouvrir"
+            className="mt-4 flex items-center gap-2.5 rounded-full border border-white/10 bg-card px-4 py-3 text-[14px] text-mist transition-colors hover:border-brand/40"
+          >
+            <span aria-hidden>🔍</span>
+            {t("searchPh")}
+          </Link>
         </section>
 
         {/* Événements populaires */}
-        <section className="mt-12">
+        <section className="mt-10">
           <div className="flex items-baseline justify-between">
             <h2 className="font-display text-[15px] font-extrabold">
               {tEvents("popular")}
@@ -112,44 +122,83 @@ export default async function HomePage({
           )}
         </section>
 
-        {/* Les 4 espaces */}
-        <section className="mt-12">
-          <h2 className="font-display text-[15px] font-extrabold">
-            {t("spacesTitle")}
-          </h2>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {SPACES.map((s) => (
-              <div
-                key={s.titleKey}
-                className="rounded-[20px] border border-white/10 bg-card p-5"
-              >
-                <div className="text-2xl">{s.emoji}</div>
-                <div className="font-display mt-3 text-[15px] font-extrabold">
-                  {t(s.titleKey)}
-                </div>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-mist">
-                  {t(s.descKey)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Catégories */}
+        {categories.length > 0 && (
+          <section className="mt-10">
+            <h2 className="font-display text-[15px] font-extrabold">
+              {t("categories")}
+            </h2>
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
+              {categories.slice(0, 4).map((category) => (
+                <Link
+                  key={category.key}
+                  href={`/decouvrir?categorie=${category.key}`}
+                  className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-card px-3.5 py-3 text-[13px] font-semibold transition-colors hover:border-brand/40"
+                >
+                  <span aria-hidden>{category.emoji}</span>
+                  {activeLocale === "fr" ? category.label_fr : category.label_en}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
-        {/* Pied de page */}
-        <footer className="mt-12 flex flex-col gap-3 border-t border-white/10 pb-4 pt-6 text-[13px] text-smoke">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span>📍 {t("citiesNote")}</span>
-            <span>💳 {t("paymentNote")}</span>
-            <span
-              className={`inline-flex items-center gap-1.5 ${
-                supabaseOk ? "text-success" : "text-warning"
-              }`}
-            >
-              ● {supabaseOk ? t("supabaseOk") : t("supabaseKo")}
-            </span>
-          </div>
-          <div>{t("footer")}</div>
-        </footer>
+        {/* Organisateurs suivis, ou suggestions */}
+        {organizers.organizers.length > 0 && (
+          <section className="mt-10">
+            <h2 className="font-display text-[15px] font-extrabold">
+              {organizers.followed ? t("followed") : tEvents("organizers")}
+            </h2>
+            <ul className="mt-4 flex flex-col gap-2.5">
+              {organizers.organizers.map((organizer) => (
+                <li
+                  key={organizer.id}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-card px-3.5 py-3"
+                >
+                  <span
+                    aria-hidden
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
+                    style={{ background: organizer.gradient ?? FALLBACK_GRADIENT }}
+                  >
+                    {organizer.glyph ?? "🎪"}
+                  </span>
+
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-bold">
+                    {organizer.name}
+                    {organizer.verified && (
+                      <span aria-hidden className="ml-1 text-accent">
+                        ✓
+                      </span>
+                    )}
+                  </span>
+
+                  <form action={toggleFollow}>
+                    <input
+                      type="hidden"
+                      name="organizerId"
+                      value={organizer.id}
+                    />
+                    <input
+                      type="hidden"
+                      name="following"
+                      value={organizer.following ? "1" : "0"}
+                    />
+                    <button
+                      type="submit"
+                      className={`rounded-full border px-3.5 py-1.5 text-[11px] font-bold transition-colors ${
+                        organizer.following
+                          ? "border-white/15 bg-white/5 text-mist"
+                          : "border-brand bg-brand/10 text-brand hover:bg-brand/20"
+                      }`}
+                    >
+                      {organizer.following ? t("following") : t("follow")}
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </main>
   );
