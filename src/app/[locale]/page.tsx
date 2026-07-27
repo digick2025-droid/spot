@@ -155,22 +155,29 @@ export default async function HomePage({
                   key={organizer.id}
                   className="flex items-center gap-3 rounded-2xl border border-white/10 bg-card px-3.5 py-3"
                 >
-                  <span
-                    aria-hidden
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
-                    style={{ background: organizer.gradient ?? FALLBACK_GRADIENT }}
+                  <Link
+                    href={`/organisateurs/${organizer.slug}`}
+                    className="flex min-w-0 flex-1 items-center gap-3"
                   >
-                    {organizer.glyph ?? "🎪"}
-                  </span>
+                    <span
+                      aria-hidden
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
+                      style={{
+                        background: organizer.gradient ?? FALLBACK_GRADIENT,
+                      }}
+                    >
+                      {organizer.glyph ?? "🎪"}
+                    </span>
 
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-bold">
-                    {organizer.name}
-                    {organizer.verified && (
-                      <span aria-hidden className="ml-1 text-accent">
-                        ✓
-                      </span>
-                    )}
-                  </span>
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-bold">
+                      {organizer.name}
+                      {organizer.verified && (
+                        <span aria-hidden className="ml-1 text-accent">
+                          ✓
+                        </span>
+                      )}
+                    </span>
+                  </Link>
 
                   <form action={toggleFollow}>
                     <input

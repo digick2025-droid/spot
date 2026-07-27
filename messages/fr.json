@@ -228,6 +228,11 @@
       "scannedAt": "Scanné à {time}"
     }
   },
+  "organizerPage": {
+    "notFound": "Organisateur introuvable",
+    "notFoundHint": "La fiche a peut-être été retirée ou l'adresse est incorrecte.",
+    "noUpcoming": "Aucun événement à venir chez cet organisateur."
+  },
   "organizer": {
     "setupTitle": "Crée ta fiche organisateur",
     "setupHint": "C'est le nom sous lequel le public te suit et achète tes billets.",

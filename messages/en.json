@@ -228,6 +228,11 @@
       "scannedAt": "Scanned at {time}"
     }
   },
+  "organizerPage": {
+    "notFound": "Organizer not found",
+    "notFoundHint": "The profile may have been removed, or the address is wrong.",
+    "noUpcoming": "This organizer has no upcoming event."
+  },
   "organizer": {
     "setupTitle": "Create your organizer profile",
     "setupHint": "This is the name people follow and buy your tickets from.",

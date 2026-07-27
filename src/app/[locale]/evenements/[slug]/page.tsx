@@ -91,7 +91,14 @@ export default async function EventPage({
         </div>
         <div className="flex gap-2">
           <dt aria-hidden>🎤</dt>
-          <dd className="text-mist">{event.organizers.name}</dd>
+          <dd>
+            <Link
+              href={`/organisateurs/${event.organizers.slug}`}
+              className="text-mist underline-offset-4 hover:text-white hover:underline"
+            >
+              {event.organizers.name}
+            </Link>
+          </dd>
         </div>
       </dl>
 

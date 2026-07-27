@@ -169,7 +169,9 @@ export async function listOrganizers(limit = 6): Promise<EventOrganizer[]> {
 }
 
 /** Prix d'entrée affiché sur une vignette : le type de billet le moins cher. */
-export function lowestPrice(event: EventSummary): number {
+export function lowestPrice(event: {
+  ticket_types: { price_xaf: number }[];
+}): number {
   return event.ticket_types.reduce(
     (min, t) => Math.min(min, t.price_xaf),
     Number.POSITIVE_INFINITY
