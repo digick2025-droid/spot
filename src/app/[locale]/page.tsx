@@ -64,36 +64,9 @@ export default async function HomePage({
         }}
       />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-8">
-        {/* En-tête : logo + sélecteur de langue */}
-        <header className="flex items-center justify-between">
-          <div className="font-display text-2xl font-extrabold tracking-tight">
-            SP<span className="spot-dot mx-0.5" aria-hidden />T
-          </div>
-          <nav className="flex gap-1 rounded-full bg-card p-1 text-xs font-semibold">
-            <Link
-              href="/"
-              locale="fr"
-              className={`rounded-full px-3 py-1.5 transition-colors ${
-                locale === "fr" ? "bg-brand text-white" : "text-mist"
-              }`}
-            >
-              FR
-            </Link>
-            <Link
-              href="/"
-              locale="en"
-              className={`rounded-full px-3 py-1.5 transition-colors ${
-                locale === "en" ? "bg-brand text-white" : "text-mist"
-              }`}
-            >
-              EN
-            </Link>
-          </nav>
-        </header>
-
+      <div className="relative mx-auto flex w-full max-w-3xl flex-col px-6 py-8">
         {/* Héros */}
-        <section className="mt-14">
+        <section className="mt-6">
           <span className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-card px-4 py-1.5 text-xs font-semibold text-fog">
             ⚡ {t("phaseBadge")}
           </span>

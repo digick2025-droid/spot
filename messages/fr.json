@@ -245,5 +245,8 @@
       "empty": "Aucun code fourni",
       "scannedAt": "Scanné à {time}"
     }
+  },
+  "nav": {
+    "label": "Navigation principale"
   }
 }

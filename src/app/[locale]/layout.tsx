@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { AppHeader } from "@/components/app-header";
+import { BottomNav } from "@/components/bottom-nav";
+import { getOwnedOrganizers, getUser } from "@/lib/auth/dal";
 import "../globals.css";
 
 const manrope = Manrope({
@@ -47,13 +50,27 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
 
+  // Sert uniquement à décider des onglets affichés : les pages et les
+  // Server Actions revérifient les droits pour leur propre compte.
+  const [user, ownedOrganizers] = await Promise.all([
+    getUser(),
+    getOwnedOrganizers(),
+  ]);
+
   return (
     <html
       lang={locale}
       className={`${manrope.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <AppHeader />
+          {children}
+          <BottomNav
+            canScan={ownedOrganizers.length > 0}
+            isSignedIn={user !== null}
+          />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

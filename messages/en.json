@@ -245,5 +245,8 @@
       "empty": "No code provided",
       "scannedAt": "Scanned at {time}"
     }
+  },
+  "nav": {
+    "label": "Main navigation"
   }
 }
