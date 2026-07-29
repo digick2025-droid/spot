@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { requireProfile } from "@/lib/auth/dal";
 import { signOut } from "@/lib/auth/actions";
+import { ProfileForm } from "./profile-form";
 
 /**
  * Écran Profil — version minimale : identité et déconnexion.
@@ -73,7 +74,18 @@ export default async function AccountPage({
         </span>
       </Link>
 
-      <form action={signOut} className="mt-6">
+      <section className="mt-8">
+        <h2 className="font-display text-[15px] font-extrabold">
+          {t("settings")}
+        </h2>
+        <ProfileForm
+          fullName={profile.full_name ?? ""}
+          phone={profile.phone ?? ""}
+          locale={profile.locale}
+        />
+      </section>
+
+      <form action={signOut} className="mt-8">
         <button
           type="submit"
           className="w-full rounded-2xl border border-white/10 bg-card px-5 py-3.5 font-display text-[14px] font-extrabold text-danger transition-colors hover:border-danger/50"

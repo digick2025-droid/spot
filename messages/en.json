@@ -228,6 +228,23 @@
       "scannedAt": "Scanned at {time}"
     }
   },
+  "account": {
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "phoneLabel": "Phone",
+    "phoneHint": "Used to prefill Mobile Money payment. Optional.",
+    "localeLabel": "Language",
+    "localeFr": "Français",
+    "localeEn": "English",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Profile saved ✓",
+    "errors": {
+      "invalid": "Invalid form.",
+      "phone": "Invalid number: 9 digits starting with 6 expected.",
+      "unavailable": "Cannot save right now. Try again in a moment."
+    }
+  },
   "organizerPage": {
     "notFound": "Organizer not found",
     "notFoundHint": "The profile may have been removed, or the address is wrong.",

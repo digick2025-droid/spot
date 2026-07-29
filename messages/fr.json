@@ -228,6 +228,23 @@
       "scannedAt": "Scanné à {time}"
     }
   },
+  "account": {
+    "nameLabel": "Nom",
+    "namePlaceholder": "Ton nom",
+    "phoneLabel": "Téléphone",
+    "phoneHint": "Sert à pré-remplir le paiement Mobile Money. Facultatif.",
+    "localeLabel": "Langue",
+    "localeFr": "Français",
+    "localeEn": "English",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Profil enregistré ✓",
+    "errors": {
+      "invalid": "Formulaire invalide.",
+      "phone": "Numéro invalide : 9 chiffres commençant par 6 attendus.",
+      "unavailable": "Enregistrement impossible pour le moment. Réessaie dans un instant."
+    }
+  },
   "organizerPage": {
     "notFound": "Organisateur introuvable",
     "notFoundHint": "La fiche a peut-être été retirée ou l'adresse est incorrecte.",
