@@ -245,6 +245,26 @@
       "unavailable": "Enregistrement impossible pour le moment. Réessaie dans un instant."
     }
   },
+  "pass": {
+    "empty": "Ton passeport est encore vierge.",
+    "emptyHint": "Réserve ta première place : les points tombent dès l'achat.",
+    "browse": "Découvrir les événements",
+    "nextLevel": "Encore {points} points avant {level}",
+    "maxLevel": "Niveau maximum atteint",
+    "locked": "À débloquer",
+    "levels": {
+      "bronze": "BRONZE",
+      "silver": "SILVER",
+      "gold": "GOLD"
+    },
+    "badgeNames": {
+      "musicLover": "Music Lover",
+      "nightExplorer": "Night Explorer",
+      "knowledgeHunter": "Knowledge Hunter",
+      "roadTripper": "Road Tripper",
+      "spotLegend": "SPOT Legend"
+    }
+  },
   "organizerPage": {
     "notFound": "Organisateur introuvable",
     "notFoundHint": "La fiche a peut-être été retirée ou l'adresse est incorrecte.",

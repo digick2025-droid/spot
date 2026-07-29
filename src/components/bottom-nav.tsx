@@ -9,6 +9,8 @@ type Tab = {
   emoji: string;
   label: string;
   isActive: (pathname: string) => boolean;
+  /** L'onglet mis en avant au centre de la barre (maquette : SPOT PASS). */
+  isCenter?: boolean;
 };
 
 /**
@@ -22,7 +24,8 @@ type Tab = {
  * c'est du confort d'affichage, pas une autorisation : `/scan` vérifie
  * lui-même les droits, un layout ne se rejouant pas à chaque navigation.
  *
- * L'emplacement central de la maquette est réservé au SPOT PASS (Phase 2).
+ * Même logique pour le SPOT PASS, à l'emplacement central : il n'a de sens
+ * qu'une fois connecté, et `/pass` exige de toute façon une session.
  */
 export function BottomNav({
   canScan,
@@ -51,14 +54,26 @@ export function BottomNav({
       label: t("explore"),
       isActive: (p) => p.startsWith("/decouvrir") || p.startsWith("/evenements"),
     },
-    {
-      key: "tickets",
-      href: "/billets",
-      emoji: "🎟",
-      label: t("tickets"),
-      isActive: (p) => p.startsWith("/billets"),
-    },
   ];
+
+  if (isSignedIn) {
+    tabs.push({
+      key: "pass",
+      href: "/pass",
+      emoji: "🎫",
+      label: t("passTab"),
+      isActive: (p) => p.startsWith("/pass"),
+      isCenter: true,
+    });
+  }
+
+  tabs.push({
+    key: "tickets",
+    href: "/billets",
+    emoji: "🎟",
+    label: t("tickets"),
+    isActive: (p) => p.startsWith("/billets"),
+  });
 
   if (canScan) {
     tabs.push({
@@ -104,7 +119,14 @@ export function BottomNav({
               active ? "text-brand" : "text-mist hover:text-fog"
             }`}
           >
-            <span aria-hidden className="text-[19px] leading-none">
+            <span
+              aria-hidden
+              className={
+                tab.isCenter
+                  ? "flex h-9 w-9 items-center justify-center rounded-full bg-brand text-[18px] leading-none text-white"
+                  : "text-[19px] leading-none"
+              }
+            >
               {tab.emoji}
             </span>
             {tab.label}

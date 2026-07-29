@@ -245,6 +245,26 @@
       "unavailable": "Cannot save right now. Try again in a moment."
     }
   },
+  "pass": {
+    "empty": "Your passport is still blank.",
+    "emptyHint": "Book your first spot — points land as soon as you buy.",
+    "browse": "Browse events",
+    "nextLevel": "{points} points to go before {level}",
+    "maxLevel": "Top level reached",
+    "locked": "Locked",
+    "levels": {
+      "bronze": "BRONZE",
+      "silver": "SILVER",
+      "gold": "GOLD"
+    },
+    "badgeNames": {
+      "musicLover": "Music Lover",
+      "nightExplorer": "Night Explorer",
+      "knowledgeHunter": "Knowledge Hunter",
+      "roadTripper": "Road Tripper",
+      "spotLegend": "SPOT Legend"
+    }
+  },
   "organizerPage": {
     "notFound": "Organizer not found",
     "notFoundHint": "The profile may have been removed, or the address is wrong.",
