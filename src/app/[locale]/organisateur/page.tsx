@@ -106,16 +106,24 @@ export default async function OrganizerDashboardPage({
           ))}
         </div>
 
-        <div className="mt-8 flex items-center justify-between gap-4">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-[15px] font-extrabold">
             {tApp("myEvents")}
           </h2>
-          <Link
-            href="/organisateur/evenements/nouveau"
-            className="rounded-full bg-brand px-4 py-2 font-display text-[13px] font-extrabold text-white hover:opacity-90"
-          >
-            + {tApp("createEvent")}
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/organisateur/campagnes"
+              className="rounded-full border border-fog px-4 py-2 font-display text-[13px] font-extrabold hover:border-brand hover:text-brand"
+            >
+              📣 {tApp("campaigns")}
+            </Link>
+            <Link
+              href="/organisateur/evenements/nouveau"
+              className="rounded-full bg-brand px-4 py-2 font-display text-[13px] font-extrabold text-white hover:opacity-90"
+            >
+              + {tApp("createEvent")}
+            </Link>
+          </div>
         </div>
 
         {events.length === 0 ? (

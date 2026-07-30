@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { requireProfile } from "@/lib/auth/dal";
 import { createOrder } from "@/lib/db/orders";
+import { readRefCode } from "@/lib/db/affiliation";
 import {
   PaymentError,
   normalizeCameroonPhone,
@@ -74,6 +75,9 @@ export async function startPayment(
       quantity: parsed.data.quantity,
       channel: parsed.data.channel as PaymentChannel,
       phone,
+      // Le code d'affiliation ne transite pas par le formulaire : il est
+      // lu ici dans son cookie httpOnly, puis revalidé par createOrder.
+      refCode: await readRefCode(),
     });
     orderId = order.orderId;
   } catch (error) {

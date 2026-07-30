@@ -12,6 +12,8 @@ export type CreateOrderInput = {
   quantity: number;
   channel: PaymentChannel;
   phone: string;
+  /** Code du lien creator porté par le cookie d'affiliation, s'il y en a un. */
+  refCode?: string | null;
 };
 
 export type CreateOrderResult = {
@@ -27,6 +29,55 @@ function newReference(): string {
   let out = "";
   for (const b of bytes) out += alphabet[b % alphabet.length];
   return `SPOT-${out}`;
+}
+
+/**
+ * Lien creator à porter sur la commande, ou null.
+ *
+ * Le code vient d'un cookie httpOnly posé par /r/[code] : il n'est jamais
+ * transmis par le formulaire, et il est revalidé ici plutôt que cru sur
+ * parole. Trois motifs de refus :
+ *
+ *  - la campagne n'est plus ouverte ;
+ *  - le lien promeut un autre événement (un cookie traîne, l'achat n'a
+ *    rien à voir) ;
+ *  - le creator est l'acheteur, qui se commissionnerait sur lui-même.
+ *
+ * Un refus n'empêche jamais l'achat : il retire seulement l'attribution.
+ */
+async function resolveCreatorLink(
+  refCode: string | null | undefined,
+  eventId: string,
+  buyerId: string
+): Promise<string | null> {
+  if (!refCode) return null;
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("creator_links")
+    .select("id, creator_id, campaigns!inner ( status, event_id )")
+    .eq("code", refCode)
+    .maybeSingle()
+    .overrideTypes<
+      {
+        id: string;
+        creator_id: string;
+        campaigns: { status: string; event_id: string };
+      } | null,
+      { merge: false }
+    >();
+
+  if (error) {
+    // L'attribution est un bonus : son échec ne doit pas coûter la vente.
+    console.error("[affiliation] résolution du lien échouée", error);
+    return null;
+  }
+  if (!data) return null;
+  if (data.campaigns.status !== "active") return null;
+  if (data.campaigns.event_id !== eventId) return null;
+  if (data.creator_id === buyerId) return null;
+
+  return data.id;
 }
 
 /**
@@ -102,6 +153,11 @@ export async function createOrder(
 
   const totalXaf = ticketType.price_xaf * input.quantity;
   const reference = newReference();
+  const creatorLinkId = await resolveCreatorLink(
+    input.refCode,
+    ticketType.event_id,
+    input.userId
+  );
 
   const { data: order, error: orderError } = await admin
     .from("orders")
@@ -113,6 +169,7 @@ export async function createOrder(
       total_xaf: totalXaf,
       channel: input.channel,
       payer_phone: input.phone,
+      creator_link_id: creatorLinkId,
     })
     .select("id")
     .single();

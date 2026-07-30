@@ -25,6 +25,7 @@ export default async function AccountPage({
   const t = await getTranslations("app");
   const tAuth = await getTranslations("auth");
   const tOrganizer = await getTranslations("organizer");
+  const tAffiliation = await getTranslations("affiliation");
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
@@ -67,6 +68,29 @@ export default async function AccountPage({
           </span>
           <span className="mt-0.5 block text-[13px] text-mist">
             {tOrganizer("openSpace")}
+          </span>
+        </span>
+        <span aria-hidden className="text-mist">
+          →
+        </span>
+      </Link>
+
+      <Link
+        href="/creator"
+        className="mt-3 flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-5 transition-colors hover:border-accent/50"
+      >
+        <span
+          aria-hidden
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/15 text-xl"
+        >
+          📣
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="font-display block text-[15px] font-extrabold">
+            {t("infSpace")}
+          </span>
+          <span className="mt-0.5 block text-[13px] text-mist">
+            {tAffiliation("creatorSpace")}
           </span>
         </span>
         <span aria-hidden className="text-mist">
