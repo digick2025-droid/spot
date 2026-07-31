@@ -7,6 +7,7 @@ import { routing } from "@/i18n/routing";
 import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
 import { getOwnedOrganizers, getUser } from "@/lib/auth/dal";
+import { getUnreadNotificationCount } from "@/lib/db/notifications";
 import "../globals.css";
 
 const manrope = Manrope({
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
     getUser(),
     getOwnedOrganizers(),
   ]);
+  const unreadCount = user ? await getUnreadNotificationCount() : 0;
 
   return (
     <html
@@ -64,7 +66,7 @@ export default async function LocaleLayout({
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider>
-          <AppHeader />
+          <AppHeader isSignedIn={user !== null} unreadCount={unreadCount} />
           {children}
           <BottomNav
             canScan={ownedOrganizers.length > 0}

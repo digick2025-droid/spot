@@ -407,5 +407,20 @@
   },
   "nav": {
     "label": "Main navigation"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet.",
+    "emptyHint": "You'll be notified here for your points, payouts, and campaigns.",
+    "markAllRead": "Mark all as read",
+    "unread": "Unread",
+    "pointsEarned": "{points} points credited",
+    "pointsEarnedHint": "For a paid order.",
+    "payoutPaid": "Payout sent: {amount}",
+    "payoutPaidHint": "Ref. {reference}",
+    "payoutFailed": "Payout failed: {amount}",
+    "payoutFailedHint": "{note} — the amount is due again, another attempt is possible.",
+    "creatorJoined": "{creator} joined “{campaign}”",
+    "creatorJoinedHint": "New campaign on {event}."
   }
 }

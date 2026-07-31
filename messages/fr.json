@@ -407,5 +407,20 @@
   },
   "nav": {
     "label": "Navigation principale"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Aucune notification pour l'instant.",
+    "emptyHint": "Tu seras prévenu ici pour tes points, tes versements et tes campagnes.",
+    "markAllRead": "Tout marquer comme lu",
+    "unread": "Non lue",
+    "pointsEarned": "{points} points crédités",
+    "pointsEarnedHint": "Pour une commande payée.",
+    "payoutPaid": "Versement envoyé : {amount}",
+    "payoutPaidHint": "Réf. {reference}",
+    "payoutFailed": "Versement échoué : {amount}",
+    "payoutFailedHint": "{note} — la somme reste due, un nouvel essai est possible.",
+    "creatorJoined": "{creator} a rejoint « {campaign} »",
+    "creatorJoinedHint": "Nouvelle campagne sur {event}."
   }
 }

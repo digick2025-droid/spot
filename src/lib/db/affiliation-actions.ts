@@ -135,14 +135,17 @@ export async function joinCampaign(
 
   const { data: campaign, error } = await admin
     .from("campaigns")
-    .select("id, status, events!inner ( id, organizers!inner ( owner_id ) )")
+    .select(
+      "id, name, status, events!inner ( id, title, organizers!inner ( owner_id ) )"
+    )
     .eq("id", parsed.data)
     .maybeSingle()
     .overrideTypes<
       {
         id: string;
+        name: string;
         status: "active" | "paused" | "ended";
-        events: { id: string; organizers: { owner_id: string } };
+        events: { id: string; title: string; organizers: { owner_id: string } };
       } | null,
       { merge: false }
     >();
@@ -177,6 +180,23 @@ export async function joinCampaign(
 
       if (!insertError) {
         inserted = true;
+
+        // Best-effort : un raté ici ne doit pas faire échouer l'adhésion,
+        // qui elle a bien eu lieu.
+        const { error: notifyError } = await admin.from("notifications").insert({
+          user_id: campaign.events.organizers.owner_id,
+          type: "creator_joined",
+          payload: {
+            campaign_id: campaign.id,
+            campaign_name: campaign.name,
+            event_title: campaign.events.title,
+            creator_id: profile.id,
+            creator_name: profile.full_name,
+          },
+        });
+        if (notifyError) {
+          console.error("[affiliation] notification d'adhésion échouée", notifyError);
+        }
       } else if (insertError.code === "23505") {
         // Unicité : soit le code, soit (campagne, creator) si deux envois
         // se sont croisés. Dans le second cas le lien existe, c'est gagné.
