@@ -1,8 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPaymentProvider } from "@/lib/payments";
+import { getPaymentProvider, type PaymentStatus } from "@/lib/payments";
+
+type AdminClient = ReturnType<typeof createAdminClient>;
 
 /**
- * Webhook de paiement — unique porte d'entrée vers l'émission des billets.
+ * Webhook de paiement — unique porte d'entrée vers l'émission des billets
+ * et la confirmation des versements.
  *
  * Trois garanties :
  *
@@ -13,9 +16,15 @@ import { getPaymentProvider } from "@/lib/payments";
  *    d'unicité. Un rejeu bute sur cette contrainte et sort sans effet.
  * 3. Atomicité : le basculement de la commande, le décrément du stock et
  *    la création des billets se font dans une seule fonction Postgres
- *    verrouillante (spot.mark_order_paid).
+ *    verrouillante (spot.mark_order_paid). Côté versement, settle_payout
+ *    et fail_payout jouent le même rôle.
  *
- * On répond 200 aux rejeux et aux commandes inconnues : l'agrégateur n'a
+ * Deux sens de circulation partagent donc cette route : l'argent qui
+ * entre (une commande) et l'argent qui sort (un versement à un creator).
+ * La référence de l'agrégateur désigne l'un ou l'autre — jamais les deux,
+ * les deux tables portant chacune leur contrainte d'unicité dessus.
+ *
+ * On répond 200 aux rejeux et aux références inconnues : l'agrégateur n'a
  * rien à réessayer dans ces cas. On réserve les codes d'erreur aux vraies
  * anomalies, pour que ses relances servent à quelque chose.
  */
@@ -83,14 +92,41 @@ export async function POST(request: Request): Promise<Response> {
     order = fallback.data;
   }
 
+  // Pas une commande : peut-être un versement sortant.
   if (!order) {
+    let { data: payout } = await admin
+      .from("payouts")
+      .select("id, status")
+      .eq("provider", provider.name)
+      .eq("provider_ref", verification.providerRef)
+      .maybeSingle();
+
+    if (!payout && verification.reference) {
+      const fallback = await admin
+        .from("payouts")
+        .select("id, status")
+        .eq("reference", verification.reference)
+        .maybeSingle();
+      payout = fallback.data;
+    }
+
+    if (payout) {
+      return await handlePayout({
+        admin,
+        eventId: eventRow.id,
+        payoutId: payout.id,
+        providerRef: verification.providerRef,
+        status: verification.status,
+      });
+    }
+
     await admin
       .from("payment_events")
       .update({ processed_at: new Date().toISOString() })
       .eq("id", eventRow.id);
 
-    // Rien à réessayer côté agrégateur : la commande n'existe pas ici.
-    return Response.json({ status: "commande inconnue" }, { status: 200 });
+    // Rien à réessayer côté agrégateur : la référence n'existe pas ici.
+    return Response.json({ status: "référence inconnue" }, { status: 200 });
   }
 
   try {
@@ -131,6 +167,74 @@ export async function POST(request: Request): Promise<Response> {
       .from("payment_events")
       .update({ order_id: order.id })
       .eq("id", eventRow.id);
+
+    return Response.json({ error: "Traitement échoué" }, { status: 500 });
+  }
+}
+
+/**
+ * Sort du webhook côté versement.
+ *
+ * Symétrique du traitement d'une commande, à une différence près : un
+ * échec n'est pas une fin de course. fail_payout remet les commissions
+ * au dû, et l'organisateur peut réessayer — le creator n'a rien perdu.
+ */
+async function handlePayout({
+  admin,
+  eventId,
+  payoutId,
+  providerRef,
+  status,
+}: {
+  admin: AdminClient;
+  eventId: string;
+  payoutId: string;
+  providerRef: string;
+  status: PaymentStatus;
+}): Promise<Response> {
+  try {
+    if (status === "paid") {
+      const { data: settled, error } = await admin.rpc("settle_payout", {
+        p_payout_id: payoutId,
+        p_provider_ref: providerRef,
+      });
+      if (error) throw new Error(error.message);
+
+      console.info(
+        settled
+          ? `[webhook] versement ${payoutId} confirmé`
+          : `[webhook] versement ${payoutId} déjà clos, confirmation ignorée`
+      );
+    } else if (status === "failed") {
+      const { data: released, error } = await admin.rpc("fail_payout", {
+        p_payout_id: payoutId,
+        p_note: "Reversement refusé par l'opérateur",
+      });
+      if (error) throw new Error(error.message);
+
+      console.info(
+        released
+          ? `[webhook] versement ${payoutId} échoué, commissions rendues au dû`
+          : `[webhook] versement ${payoutId} déjà clos, échec ignoré`
+      );
+    }
+    // « pending » : accusé de réception, rien à faire.
+
+    await admin
+      .from("payment_events")
+      .update({ processed_at: new Date().toISOString(), payout_id: payoutId })
+      .eq("id", eventId);
+
+    return Response.json({ status: "traité" }, { status: 200 });
+  } catch (error) {
+    console.error("[webhook] traitement du versement échoué", error);
+
+    // processed_at reste à NULL : l'incident est visible en base, et la
+    // reprise se fait à la main plutôt qu'à l'aveugle.
+    await admin
+      .from("payment_events")
+      .update({ payout_id: payoutId })
+      .eq("id", eventId);
 
     return Response.json({ error: "Traitement échoué" }, { status: 500 });
   }

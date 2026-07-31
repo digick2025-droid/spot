@@ -9,11 +9,14 @@ import {
   getSiteOrigin,
   type CampaignStatus,
   type OrganizerCampaign,
+  type PayoutStatus,
 } from "@/lib/db/affiliation";
 import { setCampaignStatus } from "@/lib/db/affiliation-actions";
+import { simulatePayoutWebhook } from "@/lib/payments/dev-actions";
 import { formatPriceXaf } from "@/lib/format";
 import { CopyButton } from "@/components/copy-button";
 import { CampaignForm } from "./campaign-form";
+import { PayCreatorForm } from "./pay-creator";
 
 const STATUS_KEY: Record<CampaignStatus, string> = {
   active: "statusActive",
@@ -26,6 +29,23 @@ const STATUS_STYLE: Record<CampaignStatus, string> = {
   paused: "bg-warning/10 text-warning",
   ended: "bg-fog text-smoke",
 };
+
+const PAYOUT_KEY: Record<PayoutStatus, string> = {
+  pending: "payoutPending",
+  paid: "payoutPaid",
+  failed: "payoutFailed",
+};
+
+const PAYOUT_STYLE: Record<PayoutStatus, string> = {
+  pending: "text-warning",
+  paid: "text-success",
+  failed: "text-danger",
+};
+
+/** Le provider mock ne rappelle personne : en dev, on joue le webhook. */
+const CAN_SIMULATE =
+  process.env.NODE_ENV !== "production" &&
+  (process.env.PAYMENT_PROVIDER ?? "mock") === "mock";
 
 /**
  * Campagnes Creator — écran clair de la maquette.
@@ -178,14 +198,15 @@ async function CampaignCard({
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label={tApp("clicks")} value={`${campaign.clicks}`} />
         <Stat label={tApp("ticketsSold")} value={`${campaign.tickets}`} />
         <Stat
           label={tApp("commissionsDue")}
-          value={formatPriceXaf(campaign.commissionXaf)}
+          value={formatPriceXaf(campaign.dueXaf)}
           accent
         />
+        <Stat label={t("paidOut")} value={formatPriceXaf(campaign.paidXaf)} />
       </div>
 
       <h4 className="mt-5 text-[12px] text-smoke">
@@ -199,7 +220,7 @@ async function CampaignCard({
           {campaign.creators.map((creator) => (
             <li
               key={creator.linkId}
-              className="flex items-center gap-3 rounded-[14px] bg-paper px-4 py-3"
+              className="flex flex-wrap items-center gap-3 rounded-[14px] bg-paper px-4 py-3"
             >
               <span
                 aria-hidden
@@ -213,15 +234,83 @@ async function CampaignCard({
                 </span>
                 <span className="block text-[11px] text-smoke">
                   {creator.clicks} {tApp("clicks").toLowerCase()} ·{" "}
-                  {creator.tickets} {tApp("ticketsSold").toLowerCase()}
+                  {creator.tickets} {tApp("ticketsSold").toLowerCase()} ·{" "}
+                  {t("earned", { amount: formatPriceXaf(creator.commissionXaf) })}
                 </span>
               </span>
-              <span className="shrink-0 text-[12px] font-bold text-accent">
-                {formatPriceXaf(creator.commissionXaf)}
+
+              <span className="shrink-0 text-right">
+                <span className="block text-[11px] text-smoke">{t("due")}</span>
+                <span className="block text-[13px] font-bold text-accent">
+                  {formatPriceXaf(creator.dueXaf)}
+                </span>
+              </span>
+
+              {/* Ce qui est déjà parti n'est plus actionnable : le bouton
+                  ne réapparaît qu'avec de nouvelles commissions. */}
+              <span className="w-full sm:w-auto">
+                {creator.dueXaf > 0 ? (
+                  <PayCreatorForm
+                    campaignId={campaign.id}
+                    creatorId={creator.creatorId}
+                    dueXaf={creator.dueXaf}
+                    hasPayoutPhone={creator.hasPayoutPhone}
+                  />
+                ) : creator.pendingXaf > 0 ? (
+                  <span className="text-[12px] font-semibold text-warning">
+                    {t("payoutPending")} · {formatPriceXaf(creator.pendingXaf)}
+                  </span>
+                ) : null}
               </span>
             </li>
           ))}
         </ul>
+      )}
+
+      {campaign.payouts.length > 0 && (
+        <>
+          <h4 className="mt-5 text-[12px] text-smoke">{t("payoutsTitle")}</h4>
+          <ul className="mt-2 flex flex-col gap-2">
+            {campaign.payouts.map((payout) => (
+              <li
+                key={payout.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] bg-paper px-4 py-3 text-[12px]"
+              >
+                <span className="font-mono text-smoke">{payout.reference}</span>
+                <span className="min-w-0 flex-1 truncate font-semibold">
+                  {payout.creatorName}
+                </span>
+                <span className="font-bold">{formatPriceXaf(payout.amountXaf)}</span>
+                <span className={`font-semibold ${PAYOUT_STYLE[payout.status]}`}>
+                  {t(PAYOUT_KEY[payout.status])}
+                </span>
+
+                {payout.failureNote && (
+                  <span className="w-full text-[11px] text-danger">
+                    {payout.failureNote}
+                  </span>
+                )}
+
+                {CAN_SIMULATE && payout.status === "pending" && (
+                  <span className="flex w-full gap-2 pt-1">
+                    <SimulateButton
+                      payoutId={payout.id}
+                      status="paid"
+                      label={t("devPayoutPaid")}
+                      className="border-success/50 text-success hover:bg-success/10"
+                    />
+                    <SimulateButton
+                      payoutId={payout.id}
+                      status="failed"
+                      label={t("devPayoutFailed")}
+                      className="border-danger/50 text-danger hover:bg-danger/10"
+                    />
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <h4 className="mt-5 text-[12px] text-smoke">{t("inviteLabel")}</h4>
@@ -248,6 +337,32 @@ async function CampaignCard({
         </div>
       )}
     </article>
+  );
+}
+
+/** Rejoue le webhook de versement — développement et provider mock seuls. */
+function SimulateButton({
+  payoutId,
+  status,
+  label,
+  className,
+}: {
+  payoutId: string;
+  status: "paid" | "failed";
+  label: string;
+  className: string;
+}) {
+  return (
+    <form action={simulatePayoutWebhook}>
+      <input type="hidden" name="payoutId" value={payoutId} />
+      <input type="hidden" name="status" value={status} />
+      <button
+        type="submit"
+        className={`rounded-full border border-dashed px-3 py-1.5 text-[11px] font-semibold ${className}`}
+      >
+        {label}
+      </button>
+    </form>
   );
 }
 

@@ -61,8 +61,8 @@ npm run build   # vérification locale avant déploiement
 ## Plan par phases
 
 - ✅ **Phase 0 — Fondations** : scaffold, design system, i18n, Supabase, déploiement
-- ⏳ **Phase 1 — MVP cœur** : auth OTP, CRUD événements, découverte, paiement Mobile Money de bout en bout, billet QR, scan à l'entrée
-- ⏳ **Phase 2 — SPOT PASS + Affiliation**
+- ✅ **Phase 1 — MVP cœur** : auth OTP, CRUD événements, découverte, paiement Mobile Money de bout en bout, billet QR, scan à l'entrée
+- ✅ **Phase 2 — SPOT PASS + Affiliation** : points/niveaux/badges, campagnes creators, liens de promo, commissions figées à l'encaissement et versées par Mobile Money
 - ⏳ **Phase 3 — Admin + PWA + polish**
 
 Règle d'or : pas de phase suivante tant que la précédente n'est pas testée et déployée.

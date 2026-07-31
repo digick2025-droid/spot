@@ -8,9 +8,12 @@ import {
   getSiteOrigin,
   type CampaignStatus,
   type CreatorCampaign,
+  type CreatorPayout,
+  type PayoutStatus,
 } from "@/lib/db/affiliation";
 import { formatEventDateShort, formatPriceXaf } from "@/lib/format";
 import { CopyButton } from "@/components/copy-button";
+import { PayoutPhoneForm } from "./payout-phone-form";
 
 const FALLBACK_GRADIENT = "linear-gradient(135deg,#FF6B35,#8B5CF6)";
 
@@ -24,6 +27,18 @@ const STATUS_STYLE: Record<CampaignStatus, string> = {
   active: "bg-brand/15 text-brand",
   paused: "bg-warning/15 text-warning",
   ended: "bg-white/10 text-mist",
+};
+
+const PAYOUT_KEY: Record<PayoutStatus, string> = {
+  pending: "payoutPending",
+  paid: "payoutPaid",
+  failed: "payoutFailed",
+};
+
+const PAYOUT_STYLE: Record<PayoutStatus, string> = {
+  pending: "text-warning",
+  paid: "text-success",
+  failed: "text-danger",
 };
 
 /**
@@ -80,7 +95,34 @@ export default async function CreatorPage({
             <div className="mt-5 grid grid-cols-2 gap-3">
               <Stat label={tApp("clicks")} value={`${space.totalClicks}`} />
               <Stat label={t("sales")} value={`${space.totalSales}`} />
+              <Stat
+                label={t("toReceive")}
+                value={formatPriceXaf(space.totalDueXaf + space.totalPendingXaf)}
+              />
+              <Stat label={t("paidOut")} value={formatPriceXaf(space.totalPaidXaf)} />
             </div>
+          </section>
+
+          {/* ── Versements ───────────────────────────────────────── */}
+          <section className="mt-8 rounded-[22px] border border-white/10 bg-card p-6">
+            <h2 className="font-display text-[15px] font-extrabold">
+              {t("payoutsTitle")}
+            </h2>
+            <p className="mt-2 text-[13px] text-mist">{t("payoutsHint")}</p>
+
+            <PayoutPhoneForm phone={space.payoutPhone ?? ""} />
+
+            {space.payouts.length === 0 ? (
+              <p className="mt-5 text-[13px] text-mist">{t("payoutsEmpty")}</p>
+            ) : (
+              <ul className="mt-5 flex flex-col gap-2">
+                {space.payouts.map((payout) => (
+                  <li key={payout.id}>
+                    <PayoutRow payout={payout} locale={activeLocale} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <h2 className="font-display mt-8 text-[15px] font-extrabold">
@@ -177,6 +219,34 @@ async function CampaignCard({
         {campaign.status === "active" ? t("linkHint") : t("linkClosed")}
       </p>
     </article>
+  );
+}
+
+/** Une ligne d'historique de versement, du point de vue du creator. */
+async function PayoutRow({
+  payout,
+  locale,
+}: {
+  payout: CreatorPayout;
+  locale: Locale;
+}) {
+  const t = await getTranslations("affiliation");
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-ink px-4 py-3 text-[12px]">
+      <span className="font-mono text-smoke">{payout.reference}</span>
+      <span className="min-w-0 flex-1 truncate text-mist">{payout.eventTitle}</span>
+      <span className="font-display text-[14px] font-extrabold">
+        {formatPriceXaf(payout.amountXaf)}
+      </span>
+      <span className={`font-semibold ${PAYOUT_STYLE[payout.status]}`}>
+        {t(PAYOUT_KEY[payout.status])}
+      </span>
+      <span className="w-full text-[11px] text-smoke">
+        {formatEventDateShort(payout.paidAt ?? payout.createdAt, locale)}
+        {payout.status === "failed" && ` · ${t("payoutFailedHint")}`}
+      </span>
+    </div>
   );
 }
 

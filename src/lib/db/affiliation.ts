@@ -2,6 +2,7 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getUser } from "@/lib/auth/dal";
 import { getMyOrganizer } from "./organizer";
 
 /**
@@ -24,6 +25,30 @@ export const REF_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 export type CommissionKind = "percent" | "fixed";
 export type CampaignStatus = "active" | "paused" | "ended";
+export type PayoutStatus = "pending" | "paid" | "failed";
+
+/**
+ * Répartition d'un cumul de commissions selon l'avancement du versement.
+ *
+ * Une commission est « due » tant qu'aucun versement ne la porte, « en
+ * cours » dès qu'un ordre est parti chez l'opérateur, et « versée »
+ * quand celui-ci l'a confirmé. Un versement raté remet sa part au dû.
+ */
+export type CommissionTotals = {
+  totalXaf: number;
+  count: number;
+  dueXaf: number;
+  pendingXaf: number;
+  paidXaf: number;
+};
+
+const NO_COMMISSION: CommissionTotals = {
+  totalXaf: 0,
+  count: 0,
+  dueXaf: 0,
+  pendingXaf: 0,
+  paidXaf: 0,
+};
 
 export type CampaignEvent = {
   id: string;
@@ -37,12 +62,35 @@ export type CampaignEvent = {
 
 export type CampaignCreator = {
   linkId: string;
+  /** Destinataire du versement — l'ordre de paiement le désigne, pas le lien. */
+  creatorId: string;
   code: string;
   /** Nom public du creator, ou son code de lien à défaut. */
   name: string;
   clicks: number;
   tickets: number;
   commissionXaf: number;
+  dueXaf: number;
+  pendingXaf: number;
+  paidXaf: number;
+  /**
+   * Vrai quand le creator a désigné un numéro de versement. Le numéro
+   * lui-même ne remonte pas : l'organisateur ordonne le paiement, il n'a
+   * pas à connaître la destination.
+   */
+  hasPayoutPhone: boolean;
+};
+
+/** Un ordre de versement, vu par l'organisateur qui l'a déclenché. */
+export type OrganizerPayout = {
+  id: string;
+  reference: string;
+  creatorName: string;
+  amountXaf: number;
+  status: PayoutStatus;
+  createdAt: string;
+  paidAt: string | null;
+  failureNote: string | null;
 };
 
 export type OrganizerCampaign = {
@@ -55,7 +103,11 @@ export type OrganizerCampaign = {
   clicks: number;
   tickets: number;
   commissionXaf: number;
+  dueXaf: number;
+  pendingXaf: number;
+  paidXaf: number;
   creators: CampaignCreator[];
+  payouts: OrganizerPayout[];
 };
 
 export type CreatorCampaign = {
@@ -71,6 +123,21 @@ export type CreatorCampaign = {
   /** Commandes payées arrivées par le lien — une commission par commande. */
   sales: number;
   earningsXaf: number;
+  dueXaf: number;
+  pendingXaf: number;
+  paidXaf: number;
+};
+
+/** Un ordre de versement, vu par le creator qui l'attend. */
+export type CreatorPayout = {
+  id: string;
+  reference: string;
+  amountXaf: number;
+  status: PayoutStatus;
+  createdAt: string;
+  paidAt: string | null;
+  campaignName: string;
+  eventTitle: string;
 };
 
 export type CreatorSpace = {
@@ -78,6 +145,12 @@ export type CreatorSpace = {
   totalEarningsXaf: number;
   totalClicks: number;
   totalSales: number;
+  totalDueXaf: number;
+  totalPendingXaf: number;
+  totalPaidXaf: number;
+  /** Numéro Mobile Money sur lequel le creator veut être payé. */
+  payoutPhone: string | null;
+  payouts: CreatorPayout[];
 };
 
 type CampaignRow = {
@@ -95,7 +168,12 @@ type CampaignRow = {
   }[];
 };
 
-type CommissionRow = { creator_link_id: string; amount_xaf: number };
+type CommissionRow = {
+  creator_link_id: string;
+  amount_xaf: number;
+  payout_id: string | null;
+  payouts: { status: PayoutStatus } | null;
+};
 
 /** Billets d'une commande attribuée : la commission porte sur la commande. */
 type AttributedOrderRow = {
@@ -132,10 +210,13 @@ export async function getOrganizerCampaigns(): Promise<OrganizerCampaign[] | nul
   const campaignRows = data ?? [];
   if (campaignRows.length === 0) return [];
 
-  const [commissions, orders, names] = await Promise.all([
+  const [commissions, orders, creators, payouts] = await Promise.all([
     readCommissionsByLink(),
     readTicketsByLink(),
-    readCreatorNames(campaignRows.flatMap((c) => c.creator_links.map((l) => l.creator_id))),
+    readCreatorProfiles(
+      campaignRows.flatMap((c) => c.creator_links.map((l) => l.creator_id))
+    ),
+    readPayoutsByCampaign(),
   ]);
 
   return campaignRows
@@ -143,14 +224,24 @@ export async function getOrganizerCampaigns(): Promise<OrganizerCampaign[] | nul
     // plus rien à afficher.
     .filter((row): row is CampaignRow & { events: CampaignEvent } => row.events !== null)
     .map((row) => {
-      const creators = row.creator_links.map((link) => ({
-        linkId: link.id,
-        code: link.code,
-        name: names.get(link.creator_id) ?? link.code,
-        clicks: link.clicks,
-        tickets: orders.get(link.id) ?? 0,
-        commissionXaf: commissions.get(link.id)?.amount ?? 0,
-      }));
+      const links = row.creator_links.map((link) => {
+        const totals = commissions.get(link.id) ?? NO_COMMISSION;
+        const profile = creators.get(link.creator_id);
+
+        return {
+          linkId: link.id,
+          creatorId: link.creator_id,
+          code: link.code,
+          name: profile?.name ?? link.code,
+          clicks: link.clicks,
+          tickets: orders.get(link.id) ?? 0,
+          commissionXaf: totals.totalXaf,
+          dueXaf: totals.dueXaf,
+          pendingXaf: totals.pendingXaf,
+          paidXaf: totals.paidXaf,
+          hasPayoutPhone: profile?.hasPayoutPhone ?? false,
+        };
+      });
 
       return {
         id: row.id,
@@ -159,10 +250,19 @@ export async function getOrganizerCampaigns(): Promise<OrganizerCampaign[] | nul
         commissionKind: row.commission_kind,
         commissionValue: row.commission_value,
         event: row.events,
-        clicks: creators.reduce((n, c) => n + c.clicks, 0),
-        tickets: creators.reduce((n, c) => n + c.tickets, 0),
-        commissionXaf: creators.reduce((n, c) => n + c.commissionXaf, 0),
-        creators: creators.sort((a, b) => b.commissionXaf - a.commissionXaf),
+        clicks: links.reduce((n, c) => n + c.clicks, 0),
+        tickets: links.reduce((n, c) => n + c.tickets, 0),
+        commissionXaf: links.reduce((n, c) => n + c.commissionXaf, 0),
+        dueXaf: links.reduce((n, c) => n + c.dueXaf, 0),
+        pendingXaf: links.reduce((n, c) => n + c.pendingXaf, 0),
+        paidXaf: links.reduce((n, c) => n + c.paidXaf, 0),
+        // Ce qui reste à payer d'abord : c'est la seule ligne sur
+        // laquelle l'organisateur a quelque chose à faire.
+        creators: links.sort((a, b) => b.dueXaf - a.dueXaf || b.commissionXaf - a.commissionXaf),
+        payouts: (payouts.get(row.id) ?? []).map(({ creatorId, ...payout }) => ({
+          ...payout,
+          creatorName: creators.get(creatorId)?.name ?? "—",
+        })),
       };
     });
 }
@@ -185,7 +285,7 @@ type LinkRow = {
 export async function getCreatorSpace(): Promise<CreatorSpace> {
   const supabase = await createClient();
 
-  const [linksResult, commissions] = await Promise.all([
+  const [linksResult, commissions, payouts, payoutPhone] = await Promise.all([
     supabase
       .from("creator_links")
       .select(
@@ -198,6 +298,8 @@ export async function getCreatorSpace(): Promise<CreatorSpace> {
       .order("created_at", { ascending: false })
       .overrideTypes<LinkRow[], { merge: false }>(),
     readCommissionsByLink(),
+    readMyPayouts(),
+    readMyPayoutPhone(),
   ]);
 
   if (linksResult.error) {
@@ -211,7 +313,7 @@ export async function getCreatorSpace(): Promise<CreatorSpace> {
     // page à promouvoir.
     if (!campaign?.events) continue;
 
-    const totals = commissions.get(link.id);
+    const totals = commissions.get(link.id) ?? NO_COMMISSION;
     campaigns.push({
       linkId: link.id,
       code: link.code,
@@ -222,8 +324,11 @@ export async function getCreatorSpace(): Promise<CreatorSpace> {
       commissionKind: campaign.commission_kind,
       commissionValue: campaign.commission_value,
       event: campaign.events,
-      sales: totals?.count ?? 0,
-      earningsXaf: totals?.amount ?? 0,
+      sales: totals.count,
+      earningsXaf: totals.totalXaf,
+      dueXaf: totals.dueXaf,
+      pendingXaf: totals.pendingXaf,
+      paidXaf: totals.paidXaf,
     });
   }
 
@@ -232,7 +337,76 @@ export async function getCreatorSpace(): Promise<CreatorSpace> {
     totalEarningsXaf: campaigns.reduce((n, c) => n + c.earningsXaf, 0),
     totalClicks: campaigns.reduce((n, c) => n + c.clicks, 0),
     totalSales: campaigns.reduce((n, c) => n + c.sales, 0),
+    totalDueXaf: campaigns.reduce((n, c) => n + c.dueXaf, 0),
+    totalPendingXaf: campaigns.reduce((n, c) => n + c.pendingXaf, 0),
+    totalPaidXaf: campaigns.reduce((n, c) => n + c.paidXaf, 0),
+    payoutPhone,
+    payouts,
   };
+}
+
+type PayoutRow = {
+  id: string;
+  reference: string;
+  amount_xaf: number;
+  status: PayoutStatus;
+  created_at: string;
+  paid_at: string | null;
+  campaigns: { name: string; events: { title: string } | null } | null;
+};
+
+/**
+ * Versements reçus (ou en route) par l'utilisateur courant.
+ *
+ * Le filtre sur creator_id n'est pas décoratif : payouts_select_owner
+ * ouvre aussi la table aux versements que l'organisateur DOIT. Sans lui,
+ * un creator également organisateur verrait ses propres ordres de
+ * paiement listés comme des gains.
+ */
+async function readMyPayouts(): Promise<CreatorPayout[]> {
+  const user = await getUser();
+  if (!user) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("payouts")
+    .select(
+      `id, reference, amount_xaf, status, created_at, paid_at,
+       campaigns ( name, events ( title ) )`
+    )
+    .eq("creator_id", user.id)
+    .order("created_at", { ascending: false })
+    .overrideTypes<PayoutRow[], { merge: false }>();
+
+  if (error) throw new Error(`Lecture des versements impossible : ${error.message}`);
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    reference: row.reference,
+    amountXaf: row.amount_xaf,
+    status: row.status,
+    createdAt: row.created_at,
+    paidAt: row.paid_at,
+    campaignName: row.campaigns?.name ?? "—",
+    eventTitle: row.campaigns?.events?.title ?? "—",
+  }));
+}
+
+/** Numéro de versement du creator courant, s'il en a désigné un. */
+async function readMyPayoutPhone(): Promise<string | null> {
+  const user = await getUser();
+  if (!user) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("payout_phone")
+    .eq("id", user.id)
+    .maybeSingle()
+    .overrideTypes<{ payout_phone: string | null } | null, { merge: false }>();
+
+  if (error) throw new Error(`Lecture du profil impossible : ${error.message}`);
+  return data?.payout_phone ?? null;
 }
 
 /**
@@ -241,26 +415,85 @@ export async function getCreatorSpace(): Promise<CreatorSpace> {
  * La RLS peut renvoyer à la fois celles qu'il a gagnées et celles qu'il
  * doit ; les appelants n'en retiennent que les liens qui les concernent.
  */
-async function readCommissionsByLink(): Promise<
-  Map<string, { amount: number; count: number }>
-> {
+async function readCommissionsByLink(): Promise<Map<string, CommissionTotals>> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("commissions")
-    .select("creator_link_id, amount_xaf")
+    .select("creator_link_id, amount_xaf, payout_id, payouts ( status )")
     .overrideTypes<CommissionRow[], { merge: false }>();
 
   if (error) throw new Error(`Lecture des commissions impossible : ${error.message}`);
 
-  const byLink = new Map<string, { amount: number; count: number }>();
+  const byLink = new Map<string, CommissionTotals>();
   for (const row of data ?? []) {
-    const current = byLink.get(row.creator_link_id) ?? { amount: 0, count: 0 };
+    const current = byLink.get(row.creator_link_id) ?? { ...NO_COMMISSION };
+
+    // Un versement en échec a rendu ses commissions : elles reviennent
+    // ici sans payout_id, donc dans le dû. Rien à traiter à part.
+    const paid = row.payouts?.status === "paid";
+    const attached = row.payout_id !== null;
+
     byLink.set(row.creator_link_id, {
-      amount: current.amount + row.amount_xaf,
+      totalXaf: current.totalXaf + row.amount_xaf,
       count: current.count + 1,
+      dueXaf: current.dueXaf + (attached ? 0 : row.amount_xaf),
+      pendingXaf: current.pendingXaf + (attached && !paid ? row.amount_xaf : 0),
+      paidXaf: current.paidXaf + (paid ? row.amount_xaf : 0),
     });
   }
   return byLink;
+}
+
+type OrganizerPayoutRow = {
+  id: string;
+  reference: string;
+  campaign_id: string;
+  creator_id: string;
+  amount_xaf: number;
+  status: PayoutStatus;
+  created_at: string;
+  paid_at: string | null;
+  failure_note: string | null;
+};
+
+/**
+ * Versements ordonnés par l'organisateur, regroupés par campagne.
+ *
+ * payouts_select_owner ne laisse passer que les siens ; ceux qu'il aurait
+ * reçus en tant que creator portent une campagne absente de sa liste et
+ * sont donc écartés à l'assemblage.
+ */
+async function readPayoutsByCampaign(): Promise<
+  Map<string, (OrganizerPayout & { creatorId: string })[]>
+> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("payouts")
+    .select(
+      "id, reference, campaign_id, creator_id, amount_xaf, status, created_at, paid_at, failure_note"
+    )
+    .order("created_at", { ascending: false })
+    .overrideTypes<OrganizerPayoutRow[], { merge: false }>();
+
+  if (error) throw new Error(`Lecture des versements impossible : ${error.message}`);
+
+  const byCampaign = new Map<string, (OrganizerPayout & { creatorId: string })[]>();
+  for (const row of data ?? []) {
+    const list = byCampaign.get(row.campaign_id) ?? [];
+    list.push({
+      id: row.id,
+      reference: row.reference,
+      creatorId: row.creator_id,
+      creatorName: "",
+      amountXaf: row.amount_xaf,
+      status: row.status,
+      createdAt: row.created_at,
+      paidAt: row.paid_at,
+      failureNote: row.failure_note,
+    });
+    byCampaign.set(row.campaign_id, list);
+  }
+  return byCampaign;
 }
 
 /** Billets payés par lien — réservé à l'organisateur, seul à lire orders. */
@@ -285,32 +518,41 @@ async function readTicketsByLink(): Promise<Map<string, number>> {
 }
 
 /**
- * Noms publics des creators d'une campagne.
+ * Ce que l'organisateur a besoin de savoir des creators de ses campagnes.
  *
  * profiles_select_own réserve la table à son propriétaire : l'organisateur
  * ne peut pas lire ces lignes sous sa propre identité. On passe donc en
- * service_role, en n'exposant que le nom public — pas l'e-mail ni le
- * téléphone — et seulement pour des personnes qui ont rejoint une de ses
- * campagnes.
+ * service_role, en n'exposant que le nom public — pas l'e-mail, pas le
+ * téléphone, pas même le numéro de versement, dont seul le fait qu'il
+ * existe sort d'ici — et seulement pour des personnes qui ont rejoint une
+ * de ses campagnes.
  */
-async function readCreatorNames(creatorIds: string[]): Promise<Map<string, string>> {
+async function readCreatorProfiles(
+  creatorIds: string[]
+): Promise<Map<string, { name: string | null; hasPayoutPhone: boolean }>> {
   const unique = [...new Set(creatorIds)];
   if (unique.length === 0) return new Map();
 
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, payout_phone")
     .in("id", unique)
-    .overrideTypes<{ id: string; full_name: string | null }[], { merge: false }>();
+    .overrideTypes<
+      { id: string; full_name: string | null; payout_phone: string | null }[],
+      { merge: false }
+    >();
 
   if (error) throw new Error(`Lecture des creators impossible : ${error.message}`);
 
-  const names = new Map<string, string>();
+  const profiles = new Map<string, { name: string | null; hasPayoutPhone: boolean }>();
   for (const row of data ?? []) {
-    if (row.full_name) names.set(row.id, row.full_name);
+    profiles.set(row.id, {
+      name: row.full_name,
+      hasPayoutPhone: Boolean(row.payout_phone),
+    });
   }
-  return names;
+  return profiles;
 }
 
 export type JoinableCampaign = {
