@@ -381,6 +381,10 @@
     "payoutPaid": "Versé",
     "payoutFailed": "Échoué",
     "payoutFailedHint": "La somme est redevenue due : elle sera renvoyée.",
+    "payoutFailureNote": {
+      "operator_refused": "Reversement refusé par l'opérateur",
+      "request_failed": "La demande n'a pas pu être transmise à l'opérateur"
+    },
     "payoutPhoneLabel": "Numéro de versement (Mobile Money)",
     "payoutPhoneHint": "MTN MoMo ou Orange Money, à ton nom. Laisse vide pour ne plus rien recevoir.",
     "payoutPhoneSaved": "Numéro enregistré.",

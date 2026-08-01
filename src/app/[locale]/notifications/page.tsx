@@ -8,6 +8,7 @@ import {
   type NotificationType,
 } from "@/lib/db/notifications";
 import { markAllNotificationsRead } from "@/lib/db/notification-actions";
+import { payoutFailureLabel } from "@/lib/db/payout-state";
 import { formatEventDate, formatPriceXaf } from "@/lib/format";
 
 const ICON: Record<NotificationType, string> = {
@@ -82,6 +83,7 @@ async function NotificationRow({
   locale: Locale;
 }) {
   const t = await getTranslations("notifications");
+  const tAff = await getTranslations("affiliation");
   const p = notification.payload;
   const unread = notification.readAt === null;
 
@@ -99,12 +101,17 @@ async function NotificationRow({
       });
       hint = t("payoutPaidHint", { reference: String(p.reference ?? "") });
       break;
-    case "payout_failed":
+    case "payout_failed": {
       title = t("payoutFailed", {
         amount: formatPriceXaf(Number(p.amount_xaf ?? 0)),
       });
-      hint = t("payoutFailedHint", { note: String(p.note ?? "") });
+      // Les notifications antérieures au codage portent la phrase de
+      // l'agrégateur : elle reste affichée telle quelle, faute de mieux.
+      hint = t("payoutFailedHint", {
+        note: payoutFailureLabel(String(p.note ?? ""), tAff),
+      });
       break;
+    }
     case "creator_joined":
       title = t("creatorJoined", {
         creator: String(p.creator_name ?? "—"),

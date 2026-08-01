@@ -12,6 +12,7 @@ import {
   type PayoutStatus,
 } from "@/lib/db/affiliation";
 import { setCampaignStatus } from "@/lib/db/affiliation-actions";
+import { payoutFailureLabel } from "@/lib/db/payout-state";
 import { simulatePayoutWebhook } from "@/lib/payments/dev-actions";
 import { formatPriceXaf } from "@/lib/format";
 import { CopyButton } from "@/components/copy-button";
@@ -287,7 +288,7 @@ async function CampaignCard({
 
                 {payout.failureNote && (
                   <span className="w-full text-[11px] text-danger">
-                    {payout.failureNote}
+                    {payoutFailureLabel(payout.failureNote, t)}
                   </span>
                 )}
 

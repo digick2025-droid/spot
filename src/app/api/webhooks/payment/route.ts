@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPaymentProvider, type PaymentStatus } from "@/lib/payments";
+import type { PayoutFailureCode } from "@/lib/db/payout-state";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -208,7 +209,9 @@ async function handlePayout({
     } else if (status === "failed") {
       const { data: released, error } = await admin.rpc("fail_payout", {
         p_payout_id: payoutId,
-        p_note: "Reversement refusé par l'opérateur",
+        // Ici le refus est connu, l'opérateur vient de le dire. Un code
+        // plutôt que la phrase : le creator la lira dans sa langue.
+        p_note: "operator_refused" satisfies PayoutFailureCode,
       });
       if (error) throw new Error(error.message);
 

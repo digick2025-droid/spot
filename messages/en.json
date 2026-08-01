@@ -381,6 +381,10 @@
     "payoutPaid": "Paid",
     "payoutFailed": "Failed",
     "payoutFailedHint": "The amount is owed again: it will be sent back.",
+    "payoutFailureNote": {
+      "operator_refused": "Payout refused by the operator",
+      "request_failed": "The request could not be sent to the operator"
+    },
     "payoutPhoneLabel": "Payout number (Mobile Money)",
     "payoutPhoneHint": "MTN MoMo or Orange Money, in your name. Leave empty to stop receiving payouts.",
     "payoutPhoneSaved": "Number saved.",

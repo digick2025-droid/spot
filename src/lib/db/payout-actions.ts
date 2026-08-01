@@ -13,7 +13,7 @@ import {
   normalizeCameroonPhone,
   operatorFromPhone,
 } from "@/lib/payments";
-import type { PayoutFormState } from "./payout-state";
+import type { PayoutFailureCode, PayoutFormState } from "./payout-state";
 
 /**
  * Versement des commissions — écritures.
@@ -206,13 +206,14 @@ export async function payCreator(
       .update({ provider: provider.name, provider_ref: disbursement.providerRef })
       .eq("id", payout.o_payout_id);
   } catch (error) {
-    const note =
-      error instanceof Error ? error.message : "Erreur inconnue du provider";
+    // La note part sous les yeux du creator : elle dit ce qui s'est
+    // passé, pas ce que l'agrégateur en a écrit. Le message d'origine
+    // est juste au-dessus, dans les journaux.
     console.error("[versement] demande de reversement échouée", error);
 
     const { error: failError } = await admin.rpc("fail_payout", {
       p_payout_id: payout.o_payout_id,
-      p_note: note,
+      p_note: "request_failed" satisfies PayoutFailureCode,
     });
     if (failError) {
       // Les commissions restent rattachées à un versement qui n'est
