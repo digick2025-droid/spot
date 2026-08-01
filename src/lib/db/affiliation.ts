@@ -180,17 +180,20 @@ type CampaignRow = {
   }[];
 };
 
-type CommissionRow = {
+/** Une ligne de spot.commission_totals_by_link : un lien, ses cumuls. */
+type CommissionTotalsRow = {
   creator_link_id: string;
-  amount_xaf: number;
-  payout_id: string | null;
-  payouts: { status: PayoutStatus } | null;
+  commission_count: number;
+  total_xaf: number;
+  due_xaf: number;
+  pending_xaf: number;
+  paid_xaf: number;
 };
 
-/** Billets d'une commande attribuée : la commission porte sur la commande. */
-type AttributedOrderRow = {
-  creator_link_id: string | null;
-  order_items: { quantity: number }[];
+/** Une ligne de spot.ticket_totals_by_link. */
+type TicketTotalsRow = {
+  creator_link_id: string;
+  tickets: number;
 };
 
 /**
@@ -222,13 +225,16 @@ export async function getOrganizerCampaigns(): Promise<OrganizerCampaign[] | nul
   const campaignRows = data ?? [];
   if (campaignRows.length === 0) return [];
 
+  const campaignIds = campaignRows.map((c) => c.id);
+  const linkIds = campaignRows.flatMap((c) => c.creator_links.map((l) => l.id));
+
   const [commissions, orders, creators, payouts] = await Promise.all([
-    readCommissionsByLink(),
-    readTicketsByLink(),
+    readCommissionsByLink({ campaignIds }),
+    readTicketsByLink(linkIds),
     readCreatorProfiles(
       campaignRows.flatMap((c) => c.creator_links.map((l) => l.creator_id))
     ),
-    readPayoutsByCampaign(),
+    readPayoutsByCampaign(campaignIds),
   ]);
 
   return campaignRows
@@ -321,7 +327,7 @@ export async function getCreatorSpace(): Promise<CreatorSpace> {
       .eq("creator_id", user.id)
       .order("created_at", { ascending: false })
       .overrideTypes<LinkRow[], { merge: false }>(),
-    readCommissionsByLink(),
+    readCommissionsByLink({ creatorId: user.id }),
     readMyPayouts(),
     readMyPayoutPhone(),
   ]);
@@ -434,35 +440,51 @@ async function readMyPayoutPhone(): Promise<string | null> {
 }
 
 /**
- * Commissions visibles par l'appelant, regroupées par lien.
+ * De quel côté on regarde les commissions.
  *
- * La RLS peut renvoyer à la fois celles qu'il a gagnées et celles qu'il
- * doit ; les appelants n'en retiennent que les liens qui les concernent.
+ * Les deux appelants savent déjà ce qui les concerne : autant le dire à
+ * la requête. La RLS reste le garde-fou, mais elle ne suffit pas à
+ * cadrer une lecture — commissions_select_own et _owner se cumulent en
+ * OR, et quelqu'un qui est à la fois creator et organisateur voit les
+ * deux ensembles.
  */
-async function readCommissionsByLink(): Promise<Map<string, CommissionTotals>> {
+type CommissionScope = { campaignIds: string[] } | { creatorId: string };
+
+/**
+ * Cumuls de commissions par lien.
+ *
+ * La somme est faite par Postgres (spot.commission_totals_by_link) : une
+ * ligne par lien, quel qu'ait été le nombre de ventes. La boucle qui
+ * tenait ici additionnait « select * from commissions », que PostgREST
+ * tronque à 1000 lignes sans le dire — passé ce seuil, les gains d'un
+ * creator se seraient mis à baisser tout seuls.
+ */
+async function readCommissionsByLink(
+  scope: CommissionScope
+): Promise<Map<string, CommissionTotals>> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("commissions")
-    .select("creator_link_id, amount_xaf, payout_id, payouts ( status )")
-    .overrideTypes<CommissionRow[], { merge: false }>();
+
+  const query = supabase
+    .from("commission_totals_by_link")
+    .select(
+      "creator_link_id, commission_count, total_xaf, due_xaf, pending_xaf, paid_xaf"
+    );
+
+  const { data, error } = await ("creatorId" in scope
+    ? query.eq("creator_id", scope.creatorId)
+    : query.in("campaign_id", scope.campaignIds)
+  ).overrideTypes<CommissionTotalsRow[], { merge: false }>();
 
   if (error) throw new Error(`Lecture des commissions impossible : ${error.message}`);
 
   const byLink = new Map<string, CommissionTotals>();
   for (const row of data ?? []) {
-    const current = byLink.get(row.creator_link_id) ?? { ...NO_COMMISSION };
-
-    // Un versement en échec a rendu ses commissions : elles reviennent
-    // ici sans payout_id, donc dans le dû. Rien à traiter à part.
-    const paid = row.payouts?.status === "paid";
-    const attached = row.payout_id !== null;
-
     byLink.set(row.creator_link_id, {
-      totalXaf: current.totalXaf + row.amount_xaf,
-      count: current.count + 1,
-      dueXaf: current.dueXaf + (attached ? 0 : row.amount_xaf),
-      pendingXaf: current.pendingXaf + (attached && !paid ? row.amount_xaf : 0),
-      paidXaf: current.paidXaf + (paid ? row.amount_xaf : 0),
+      totalXaf: row.total_xaf,
+      count: row.commission_count,
+      dueXaf: row.due_xaf,
+      pendingXaf: row.pending_xaf,
+      paidXaf: row.paid_xaf,
     });
   }
   return byLink;
@@ -483,19 +505,26 @@ type OrganizerPayoutRow = {
 /**
  * Versements ordonnés par l'organisateur, regroupés par campagne.
  *
- * payouts_select_owner ne laisse passer que les siens ; ceux qu'il aurait
- * reçus en tant que creator portent une campagne absente de sa liste et
- * sont donc écartés à l'assemblage.
+ * Une liste, pas un cumul : rien à sommer, mais rien qui la bornait non
+ * plus. spot.recent_payouts_by_campaign en garde les 20 derniers PAR
+ * campagne — sans cela, le plafond de PostgREST aurait rogné l'ensemble
+ * par le haut, et une campagne bavarde aurait effacé l'historique des
+ * autres. La lecture est en outre restreinte aux campagnes affichées :
+ * celles reçues en tant que creator ne remontent plus pour être jetées
+ * ensuite.
  */
-async function readPayoutsByCampaign(): Promise<
-  Map<string, (OrganizerPayout & { creatorId: string })[]>
-> {
+async function readPayoutsByCampaign(
+  campaignIds: string[]
+): Promise<Map<string, (OrganizerPayout & { creatorId: string })[]>> {
+  if (campaignIds.length === 0) return new Map();
+
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("payouts")
+    .from("recent_payouts_by_campaign")
     .select(
       "id, reference, campaign_id, creator_id, amount_xaf, status, created_at, paid_at, failure_note"
     )
+    .in("campaign_id", campaignIds)
     .order("created_at", { ascending: false })
     .overrideTypes<OrganizerPayoutRow[], { merge: false }>();
 
@@ -520,25 +549,26 @@ async function readPayoutsByCampaign(): Promise<
   return byCampaign;
 }
 
-/** Billets payés par lien — réservé à l'organisateur, seul à lire orders. */
-async function readTicketsByLink(): Promise<Map<string, number>> {
+/**
+ * Billets payés par lien — réservé à l'organisateur, seul à lire orders.
+ *
+ * Même bascule que pour les commissions : la somme des quantités se fait
+ * en base, et la lecture est bornée aux liens effectivement affichés
+ * plutôt qu'à toutes les commandes attribuées de la plateforme.
+ */
+async function readTicketsByLink(linkIds: string[]): Promise<Map<string, number>> {
+  if (linkIds.length === 0) return new Map();
+
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("orders")
-    .select("creator_link_id, order_items ( quantity )")
-    .eq("status", "paid")
-    .not("creator_link_id", "is", null)
-    .overrideTypes<AttributedOrderRow[], { merge: false }>();
+    .from("ticket_totals_by_link")
+    .select("creator_link_id, tickets")
+    .in("creator_link_id", linkIds)
+    .overrideTypes<TicketTotalsRow[], { merge: false }>();
 
   if (error) throw new Error(`Lecture des ventes impossible : ${error.message}`);
 
-  const byLink = new Map<string, number>();
-  for (const order of data ?? []) {
-    if (!order.creator_link_id) continue;
-    const quantity = order.order_items.reduce((n, item) => n + item.quantity, 0);
-    byLink.set(order.creator_link_id, (byLink.get(order.creator_link_id) ?? 0) + quantity);
-  }
-  return byLink;
+  return new Map((data ?? []).map((row) => [row.creator_link_id, row.tickets]));
 }
 
 /**
