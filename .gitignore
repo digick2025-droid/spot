@@ -42,3 +42,6 @@ next-env.d.ts
 
 # keep the env template in git
 !.env.example
+
+# maquettes de travail locales
+/proto.html
