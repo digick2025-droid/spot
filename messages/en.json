@@ -421,6 +421,6 @@
     "payoutFailed": "Payout failed: {amount}",
     "payoutFailedHint": "{note} — the amount is due again, another attempt is possible.",
     "creatorJoined": "{creator} joined “{campaign}”",
-    "creatorJoinedHint": "New campaign on {event}."
+    "creatorJoinedHint": "On event {event}."
   }
 }

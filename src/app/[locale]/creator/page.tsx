@@ -198,7 +198,7 @@ async function CampaignCard({
         <Stat label={tApp("clicks")} value={`${campaign.clicks}`} dark />
         <Stat label={t("sales")} value={`${campaign.sales}`} dark />
         <Stat
-          label="Commission"
+          label={t("kindLabel")}
           value={formatPriceXaf(campaign.earningsXaf)}
           dark
           accent

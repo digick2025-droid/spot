@@ -153,6 +153,18 @@ export type CreatorSpace = {
   payouts: CreatorPayout[];
 };
 
+const EMPTY_CREATOR_SPACE: CreatorSpace = {
+  campaigns: [],
+  totalEarningsXaf: 0,
+  totalClicks: 0,
+  totalSales: 0,
+  totalDueXaf: 0,
+  totalPendingXaf: 0,
+  totalPaidXaf: 0,
+  payoutPhone: null,
+  payouts: [],
+};
+
 type CampaignRow = {
   id: string;
   name: string;
@@ -281,8 +293,19 @@ type LinkRow = {
   } | null;
 };
 
-/** Espace Creator de l'utilisateur courant. */
+/**
+ * Espace Creator de l'utilisateur courant.
+ *
+ * Même précaution que dans readMyPayouts, et pour la même raison :
+ * creator_links_rw_owner ouvre aussi la table aux liens des creators
+ * qu'un organisateur a invités. Sans le filtre sur creator_id, il verrait
+ * ici les liens de promo des autres présentés comme les siens — code
+ * compris — et leurs gains comptés dans ses totaux.
+ */
 export async function getCreatorSpace(): Promise<CreatorSpace> {
+  const user = await getUser();
+  if (!user) return EMPTY_CREATOR_SPACE;
+
   const supabase = await createClient();
 
   const [linksResult, commissions, payouts, payoutPhone] = await Promise.all([
@@ -295,6 +318,7 @@ export async function getCreatorSpace(): Promise<CreatorSpace> {
            events!inner ( id, slug, title, glyph, gradient, city, starts_at )
          )`
       )
+      .eq("creator_id", user.id)
       .order("created_at", { ascending: false })
       .overrideTypes<LinkRow[], { merge: false }>(),
     readCommissionsByLink(),

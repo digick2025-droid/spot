@@ -421,6 +421,6 @@
     "payoutFailed": "Versement échoué : {amount}",
     "payoutFailedHint": "{note} — la somme reste due, un nouvel essai est possible.",
     "creatorJoined": "{creator} a rejoint « {campaign} »",
-    "creatorJoinedHint": "Nouvelle campagne sur {event}."
+    "creatorJoinedHint": "Sur l'événement {event}."
   }
 }

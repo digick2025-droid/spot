@@ -32,6 +32,7 @@ export default async function JoinCampaignPage({
   const profile = await requireProfile();
   const activeLocale = (await getLocale()) as Locale;
   const t = await getTranslations("affiliation");
+  const tApp = await getTranslations("app");
 
   const campaign = UUID_PATTERN.test(id)
     ? await getJoinableCampaign(id, profile.id)
@@ -46,7 +47,7 @@ export default async function JoinCampaignPage({
           href="/decouvrir"
           className="mt-5 inline-block rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
         >
-          {t("notFound")}
+          {tApp("explore")}
         </Link>
       </main>
     );

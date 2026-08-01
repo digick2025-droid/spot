@@ -43,7 +43,13 @@ export async function getMyNotifications(): Promise<Notification[]> {
   }));
 }
 
-/** Compte pour le badge de la cloche — appelant responsable de la session. */
+/**
+ * Compte pour le badge de la cloche — appelant responsable de la session.
+ *
+ * Lu depuis le layout racine, donc sur chaque page : une erreur ici ne
+ * doit pas emporter toute l'application. Un badge absent est préférable
+ * à un écran blanc, comme pour getOwnedOrganizers.
+ */
 export async function getUnreadNotificationCount(): Promise<number> {
   const supabase = await createClient();
   const { count, error } = await supabase
@@ -52,7 +58,8 @@ export async function getUnreadNotificationCount(): Promise<number> {
     .is("read_at", null);
 
   if (error) {
-    throw new Error(`Comptage des notifications impossible : ${error.message}`);
+    console.error("[notifications] comptage échoué", error);
+    return 0;
   }
 
   return count ?? 0;
