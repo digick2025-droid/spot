@@ -72,7 +72,16 @@ export interface PaymentProvider {
   /** Reversement vers un organisateur ou un creator (Phase 2). */
   disburse(request: DisbursementRequest): Promise<DisbursementResult>;
 
-  /** Vérifie l'authenticité d'un webhook à partir du corps BRUT. */
+  /**
+   * Vérifie l'authenticité d'un webhook à partir du corps BRUT.
+   *
+   * Les en-têtes sont passés pour les agrégateurs qui y placent leur
+   * signature ; ceux qui signent dans le corps les ignorent.
+   *
+   * Peut lever — configuration absente, agrégateur injoignable alors que
+   * son avis est nécessaire. C'est distinct d'un `valid: false` : l'un
+   * demande une relance, l'autre est un refus définitif.
+   */
   verifyWebhook(
     rawBody: string,
     headers: Headers

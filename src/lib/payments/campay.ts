@@ -9,7 +9,7 @@ import {
   type PaymentStatus,
   type WebhookVerification,
 } from "./types";
-import { SIGNATURE_HEADER, requireWebhookSecret, verifySignature } from "./signature";
+import { verifyHs256Jwt } from "./signature";
 
 const BASE_URL = {
   sandbox: "https://demo.campay.net/api",
@@ -34,10 +34,9 @@ function mapStatus(raw: unknown): PaymentStatus | null {
 /**
  * Adaptateur Campay (MTN MoMo + Orange Money).
  *
- * Non exercé contre le service réel : aucun identifiant n'était disponible
- * au moment de l'écriture. La structure est complète, mais deux points
- * sont à confirmer contre la documentation Campay à la première connexion
- * réelle, et sont signalés ci-dessous par « À CONFIRMER ».
+ * Toujours pas exercé contre le service réel — aucun identifiant n'est
+ * disponible — mais la vérification des webhooks suit désormais la
+ * documentation HTTP de Campay et non plus une hypothèse de repli.
  */
 export class CampayPaymentProvider implements PaymentProvider {
   readonly name = "campay";
@@ -160,10 +159,72 @@ export class CampayPaymentProvider implements PaymentProvider {
     return { providerRef: data.reference, status: "pending" };
   }
 
-  async verifyWebhook(
-    rawBody: string,
-    headers: Headers
-  ): Promise<WebhookVerification> {
+  /**
+   * Statut faisant foi, lu directement chez Campay.
+   *
+   * GET /transaction/{reference}/ — le même vocabulaire que le webhook,
+   * mais PENDING y est possible alors que le webhook ne notifie que
+   * SUCCESSFUL ou FAILED.
+   *
+   * Trois issues distinctes, à ne pas confondre : la référence est
+   * inconnue (corps forgé), elle existe mais son statut ne fait pas
+   * partie du vocabulaire attendu (Campay a changé le sien), ou la
+   * lecture elle-même échoue (panne — l'appel lève).
+   */
+  private async fetchTransactionStatus(
+    reference: string
+  ): Promise<
+    { found: false } | { found: true; status: PaymentStatus | null; raw: unknown }
+  > {
+    const token = await this.accessToken();
+
+    const response = await fetch(
+      `${this.baseUrl}/transaction/${encodeURIComponent(reference)}/`,
+      {
+        headers: { Authorization: `Token ${token}` },
+        cache: "no-store",
+      }
+    );
+
+    // 404 : la référence n'existe pas chez Campay. Ce n'est pas une panne,
+    // c'est un corps forgé — on le distingue d'une indisponibilité.
+    if (response.status === 404) return { found: false };
+
+    if (!response.ok) {
+      throw new PaymentError(
+        `Statut Campay illisible pour ${reference} (HTTP ${response.status}).`,
+        true
+      );
+    }
+
+    const data = (await response.json()) as { status?: unknown };
+    return { found: true, status: mapStatus(data.status), raw: data.status };
+  }
+
+  /**
+   * Vérifie un webhook Campay.
+   *
+   * Campay ne signe pas le corps : il place dans le corps un champ
+   * `signature` contenant un JWT, à valider avec la clé de webhook de
+   * l'application (CAMPAY_WEBHOOK_KEY, distincte des identifiants d'API).
+   * C'est ce que dit leur documentation HTTP, et c'est la raison pour
+   * laquelle le repli HMAC précédent rejetait 100 % des webhooks
+   * authentiques.
+   *
+   * Cette signature ne suffit pourtant pas. La documentation ne publie pas
+   * les claims du jeton : rien ne garantit qu'il porte la référence, le
+   * montant ou le statut. Un jeton qui ne lie pas le corps est rejouable —
+   * qui en capte un une fois pourrait le recoller sur un corps forgé et
+   * faire émettre des billets sans paiement.
+   *
+   * D'où la seconde étape : le webhook ne sert que d'avertissement, et le
+   * statut est relu chez Campay pour la référence annoncée. Le corps
+   * n'est plus cru sur parole, seulement sur son champ `reference` — et
+   * une référence inventée ne survit pas à la relecture. Savoir un jour
+   * ce que contient le jeton ne rendrait pas cette étape inutile : elle
+   * couvre aussi le rejeu d'un webhook authentique mais périmé.
+   */
+  async verifyWebhook(rawBody: string): Promise<WebhookVerification> {
     let payload: unknown;
     try {
       payload = JSON.parse(rawBody);
@@ -171,35 +232,62 @@ export class CampayPaymentProvider implements PaymentProvider {
       return { valid: false, reason: "Corps JSON illisible", payload: rawBody };
     }
 
-    // À CONFIRMER : Campay transmet une signature dans le corps (champ
-    // `signature`, un JWT) plutôt qu'en en-tête. Tant que ce n'est pas
-    // vérifié contre leur documentation avec un compte réel, on exige la
-    // même signature HMAC que le provider mock — plutôt refuser un webhook
-    // authentique que d'en accepter un forgé.
-    const secret = requireWebhookSecret();
-    if (!verifySignature(rawBody, secret, headers.get(SIGNATURE_HEADER))) {
+    const body = payload as Record<string, unknown>;
+
+    const token = typeof body.signature === "string" ? body.signature : null;
+    if (!token) {
+      return { valid: false, reason: "Champ signature manquant", payload };
+    }
+
+    if (!verifyHs256Jwt(token, requireCampayWebhookKey())) {
       return { valid: false, reason: "Signature invalide", payload };
     }
 
-    const body = payload as Record<string, unknown>;
     const providerRef = typeof body.reference === "string" ? body.reference : null;
-    const status = mapStatus(body.status);
-
     if (!providerRef) {
       return { valid: false, reason: "Champ reference manquant", payload };
     }
-    if (!status) {
+
+    // Peut lever : une indisponibilité de Campay doit remonter en 500 pour
+    // que la relance serve à quelque chose, pas se déguiser en refus.
+    const remote = await this.fetchTransactionStatus(providerRef);
+
+    if (!remote.found) {
       return {
         valid: false,
-        reason: `Statut Campay inconnu : ${String(body.status)}`,
+        reason: `Référence inconnue chez Campay : ${providerRef}`,
         payload,
       };
     }
 
-    // À CONFIRMER : Campay ne documente pas d'identifiant d'ÉVÉNEMENT
-    // distinct de la référence de transaction. On compose donc la clé
-    // d'idempotence avec le statut, ce qui garde un rejeu identique
-    // inoffensif tout en laissant passer la transition pending → paid.
+    const status = remote.status;
+    if (!status) {
+      return {
+        valid: false,
+        reason: `Statut Campay inconnu : ${String(remote.raw)}`,
+        payload,
+      };
+    }
+
+    // Le webhook n'annonce qu'un état final ; si la relecture répond
+    // encore PENDING, c'est que les deux vues divergent l'instant d'une
+    // propagation. Traiter ce « pending » comme le mot de la fin
+    // classerait la commande sans billet et sans trace. On lève plutôt :
+    // la route répond 500, la relance de Campay retombera sur un statut
+    // stabilisé, et l'idempotence n'a rien enregistré entre-temps.
+    const announced = mapStatus(body.status);
+    if (status === "pending" && (announced === "paid" || announced === "failed")) {
+      throw new PaymentError(
+        `Campay annonce ${String(body.status)} pour ${providerRef} mais son ` +
+          "API répond encore PENDING : statut non stabilisé.",
+        true
+      );
+    }
+
+    // Campay ne documente pas d'identifiant d'ÉVÉNEMENT distinct de la
+    // référence de transaction : la clé d'idempotence se compose donc avec
+    // le statut, ce qui garde un rejeu identique inoffensif tout en
+    // laissant passer la transition pending → paid.
     return {
       valid: true,
       externalId: `${providerRef}:${status}`,
@@ -211,4 +299,16 @@ export class CampayPaymentProvider implements PaymentProvider {
       payload,
     };
   }
+}
+
+function requireCampayWebhookKey(): string {
+  const key = process.env.CAMPAY_WEBHOOK_KEY;
+  if (!key) {
+    throw new Error(
+      "CAMPAY_WEBHOOK_KEY est absent de l'environnement : impossible de " +
+        "valider la signature des webhooks Campay. La clé se trouve dans " +
+        "le tableau de bord Campay, sur l'application concernée."
+    );
+  }
+  return key;
 }

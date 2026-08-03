@@ -10,8 +10,10 @@ type AdminClient = ReturnType<typeof createAdminClient>;
  *
  * Trois garanties :
  *
- * 1. Authenticité : la signature est vérifiée sur le corps BRUT, avant
- *    toute interprétation. Un corps non signé n'est jamais traité.
+ * 1. Authenticité : le provider vérifie le corps BRUT avant toute
+ *    interprétation — signature HMAC en en-tête côté mock, JWT du corps
+ *    puis relecture du statut chez l'agrégateur côté Campay. Un corps
+ *    dont l'authenticité n'est pas établie n'est jamais traité.
  * 2. Idempotence : chaque événement est enregistré dans payment_events
  *    sous la clé (provider, external_id), qui porte une contrainte
  *    d'unicité. Un rejeu bute sur cette contrainte et sort sans effet.
@@ -34,7 +36,19 @@ export async function POST(request: Request): Promise<Response> {
   const rawBody = await request.text();
 
   const provider = getPaymentProvider();
-  const verification = await provider.verifyWebhook(rawBody, request.headers);
+
+  // La vérification peut lever plutôt que refuser : configuration absente,
+  // ou agrégateur injoignable alors que le statut doit être relu chez lui.
+  // Ce n'est pas un webhook douteux, c'est une panne de notre côté — 500,
+  // pour que la relance de l'agrégateur ait une chance d'aboutir.
+  let verification;
+  try {
+    verification = await provider.verifyWebhook(rawBody, request.headers);
+  } catch (error) {
+    console.error("[webhook] vérification impossible", error);
+    return Response.json({ error: "Vérification impossible" }, { status: 500 });
+  }
+
   const admin = createAdminClient();
 
   if (!verification.valid) {
