@@ -472,5 +472,11 @@
     "empty": "Nothing to show yet.",
     "limitHint": "{count} most recent rows",
     "readOnlyHint": "read-only console"
+  },
+  "pwa": {
+    "installTitle": "Install SPOT",
+    "installHint": "Add SPOT to your home screen: full-screen launch, no address bar.",
+    "installAction": "Install the app",
+    "iosHint": "On iPhone: tap “Share”, then “Add to Home Screen”."
   }
 }

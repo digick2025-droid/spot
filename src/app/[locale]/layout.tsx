@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
@@ -24,6 +24,15 @@ const inter = Inter({
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
+
+/**
+ * Couleur de la barre système, alignée sur le manifeste : installée, la
+ * PWA n'a plus de barre d'adresse, et c'est cette teinte qui prolonge la
+ * coque sombre jusqu'aux bords de l'écran.
+ */
+export const viewport: Viewport = {
+  themeColor: "#0B0B0F",
+};
 
 export async function generateMetadata({
   params,

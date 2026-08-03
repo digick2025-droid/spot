@@ -472,5 +472,11 @@
     "empty": "Rien à afficher pour l'instant.",
     "limitHint": "{count} lignes les plus récentes",
     "readOnlyHint": "console en lecture seule"
+  },
+  "pwa": {
+    "installTitle": "Installer SPOT",
+    "installHint": "Ajoute SPOT à ton écran d'accueil : ouverture plein écran, sans barre d'adresse.",
+    "installAction": "Installer l'application",
+    "iosHint": "Sur iPhone : touche « Partager », puis « Sur l'écran d'accueil »."
   }
 }

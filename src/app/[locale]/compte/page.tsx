@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { requireProfile } from "@/lib/auth/dal";
 import { signOut } from "@/lib/auth/actions";
+import { InstallPrompt } from "@/components/install-prompt";
 import { ProfileForm } from "./profile-form";
 
 /**
@@ -123,6 +124,8 @@ export default async function AccountPage({
           </span>
         </Link>
       )}
+
+      <InstallPrompt />
 
       <section className="mt-8">
         <h2 className="font-display text-[15px] font-extrabold">

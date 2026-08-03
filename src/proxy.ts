@@ -47,6 +47,13 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Tout sauf les routes API, les internes Next.js et les fichiers statiques
-  matcher: "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
+  // Tout sauf les routes API, les internes Next.js et les fichiers statiques.
+  //
+  // « apple-icon » est nommément exclu : les routes de métadonnées de Next
+  // n'ont pas d'extension, donc le filtre `.*\..*` ne les attrape pas, et
+  // next-intl réécrivait /apple-icon en /fr/apple-icon — soit un 404 et
+  // une icône absente de l'écran d'accueil iOS. Toute future route de
+  // métadonnées sans extension (icon, opengraph-image) est à ajouter ici ;
+  // /manifest.webmanifest et /icons/*.png portent un point et passent déjà.
+  matcher: "/((?!api|trpc|_next|_vercel|apple-icon|.*\\..*).*)",
 };
