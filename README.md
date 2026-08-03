@@ -52,7 +52,11 @@ src/proxy.ts         middleware de détection de locale
 
 ## Déploiement
 
-Déployé sur Vercel (team `digick`, projet `spot`). Variables d'environnement à configurer dans le dashboard Vercel : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+Déployé sur Vercel (team `digick`, projet `spot`) — https://spot-gamma-azure.vercel.app, dépôt GitHub connecté, chaque push sur `main` déclenche un build de production.
+
+Variables d'environnement à configurer dans le dashboard Vercel, sur les trois environnements : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET`, plus les quatre `CAMPAY_*` quand `PAYMENT_PROVIDER=campay`. La liste fait foi dans `.env.example`.
+
+Un build sans ces valeurs **réussit quand même** : aucune page n'est prérendue, donc l'absence de clés Supabase ne se voit qu'à la première requête, sous forme de 500. Un déploiement vert ne prouve donc rien — vérifier une page.
 
 ```bash
 npm run build   # vérification locale avant déploiement
@@ -63,6 +67,6 @@ npm run build   # vérification locale avant déploiement
 - ✅ **Phase 0 — Fondations** : scaffold, design system, i18n, Supabase, déploiement
 - ✅ **Phase 1 — MVP cœur** : auth OTP, CRUD événements, découverte, paiement Mobile Money de bout en bout, billet QR, scan à l'entrée
 - ✅ **Phase 2 — SPOT PASS + Affiliation** : points/niveaux/badges, campagnes creators, liens de promo, commissions figées à l'encaissement et versées par Mobile Money
-- ⏳ **Phase 3 — Admin + PWA + polish**
+- ✅ **Phase 3 — Admin + PWA** : console d'administration en lecture seule (sept onglets, lus via des fonctions `spot.admin_*` qui portent leur propre garde), manifeste, icônes générées au build, invitation à installer sur l'écran d'accueil
 
 Règle d'or : pas de phase suivante tant que la précédente n'est pas testée et déployée.
