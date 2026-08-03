@@ -107,6 +107,16 @@ function hourInDouala(iso: string): number {
   return Number.parseInt(formatted, 10);
 }
 
+/**
+ * Niveau correspondant à un total de points.
+ *
+ * Exporté pour que la console d'administration lise le même barème que
+ * le passeport : deux tables de seuils divergeraient tôt ou tard.
+ */
+export function passLevelFor(points: number): PassLevel {
+  return levelFor(points).level;
+}
+
 function levelFor(points: number): { level: PassLevel; nextLevelAt: number | null } {
   const index = LEVELS.findIndex((l) => points >= l.from);
   const level = LEVELS[index].key;

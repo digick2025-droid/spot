@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { notFound } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -104,6 +105,21 @@ export async function requireProfile(): Promise<Profile> {
   }
 
   return data as Profile;
+}
+
+/**
+ * Exige un profil de rôle « admin ».
+ *
+ * Un simple connecté reçoit un 404, pas un 403 : la console n'a pas à
+ * confirmer son existence à qui n'y a pas droit. Le refus n'est de toute
+ * façon pas ici l'essentiel — les fonctions spot.admin_* refusent
+ * elles-mêmes un appelant non administrateur, cette garde n'évite qu'un
+ * écran vide.
+ */
+export async function requireAdmin(): Promise<Profile> {
+  const profile = await requireProfile();
+  if (profile.role !== "admin") notFound();
+  return profile;
 }
 
 /**

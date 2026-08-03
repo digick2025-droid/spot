@@ -26,6 +26,7 @@ export default async function AccountPage({
   const tAuth = await getTranslations("auth");
   const tOrganizer = await getTranslations("organizer");
   const tAffiliation = await getTranslations("affiliation");
+  const tAdmin = await getTranslations("admin");
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
@@ -97,6 +98,31 @@ export default async function AccountPage({
           →
         </span>
       </Link>
+
+      {profile.role === "admin" && (
+        <Link
+          href="/admin"
+          className="mt-3 flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-5 transition-colors hover:border-white/30"
+        >
+          <span
+            aria-hidden
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl"
+          >
+            🛠
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="font-display block text-[15px] font-extrabold">
+              {tAdmin("title")}
+            </span>
+            <span className="mt-0.5 block text-[13px] text-mist">
+              {tAdmin("readOnlyHint")}
+            </span>
+          </span>
+          <span aria-hidden className="text-mist">
+            →
+          </span>
+        </Link>
+      )}
 
       <section className="mt-8">
         <h2 className="font-display text-[15px] font-extrabold">
