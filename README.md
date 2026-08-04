@@ -80,5 +80,6 @@ npm run build   # vérification locale avant déploiement
 - ✅ **Phase 1 — MVP cœur** : auth OTP, CRUD événements, découverte, paiement Mobile Money de bout en bout, billet QR, scan à l'entrée
 - ✅ **Phase 2 — SPOT PASS + Affiliation** : points/niveaux/badges, campagnes creators, liens de promo, commissions figées à l'encaissement et versées par Mobile Money
 - ✅ **Phase 3 — Admin + PWA** : console d'administration en lecture seule (sept onglets, lus via des fonctions `spot.admin_*` qui portent leur propre garde), manifeste, icônes générées au build, invitation à installer sur l'écran d'accueil
+- ✅ **Après la Phase 3 — vitrine, affiches, partage** : les trois pages publiques à la racine, les affiches d'événement dans Storage, les vignettes Open Graph et le bandeau d'installation — [`a1c1da0`](https://github.com/digick2025-droid/spot/commit/a1c1da0fd64253165169663d5a4bb6b2fa2c78f4) (2026-08-04)
 
 Règle d'or : pas de phase suivante tant que la précédente n'est pas testée et déployée.
