@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { createEvent } from "@/lib/db/organizer-actions";
 import { initialOrganizerFormState } from "@/lib/db/organizer-state";
+import { POSTER_MIME_TYPES } from "@/lib/posters";
 
 /** Trois paliers comme dans la maquette ; seul le premier est exigé. */
 const TIERS = [
@@ -65,6 +66,22 @@ export function EventForm({
           />
         </label>
       </div>
+
+      {/* L'affiche remplace le dégradé sur les vignettes et la fiche ;
+          le champ reste facultatif, le repli existe toujours. */}
+      <label className="flex flex-col gap-2">
+        <span className={LABEL}>{t("posterLabel")}</span>
+        <input
+          name="poster"
+          type="file"
+          accept={POSTER_MIME_TYPES.join(",")}
+          aria-describedby="poster-hint"
+          className={`${FIELD} file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:font-display file:text-[13px] file:font-extrabold file:text-white`}
+        />
+        <span id="poster-hint" className="text-[12px] text-smoke">
+          {t("posterHint")}
+        </span>
+      </label>
 
       <label className="flex flex-col gap-2">
         <span className={LABEL}>{t("descriptionLabel")}</span>

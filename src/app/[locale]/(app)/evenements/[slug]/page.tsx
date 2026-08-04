@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
@@ -6,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { getEventBySlug } from "@/lib/db/events";
 import { formatEventDate, formatPriceXaf } from "@/lib/format";
+import { posterUrl } from "@/lib/posters";
 import { getUser } from "@/lib/auth/dal";
 import { TicketPicker } from "./ticket-picker";
 
@@ -45,6 +47,7 @@ export default async function EventPage({
   const activeLocale = (await getLocale()) as Locale;
   const t = await getTranslations("events");
   const user = await getUser();
+  const poster = posterUrl(event.poster_path);
 
   const description =
     activeLocale === "fr" ? event.description_fr : event.description_en;
@@ -66,12 +69,24 @@ export default async function EventPage({
         ← {t("backToEvents")}
       </Link>
 
+      {/* L'affiche téléversée par l'organisateur, à défaut le dégradé. */}
       <div
-        className="mt-4 flex h-40 items-center justify-center rounded-[20px] text-6xl"
+        className="relative mt-4 flex h-40 items-center justify-center overflow-hidden rounded-[20px] text-6xl sm:h-56"
         style={{ background: event.gradient ?? FALLBACK_GRADIENT }}
         aria-hidden
       >
-        {event.glyph ?? "🎟"}
+        {poster ? (
+          <Image
+            src={poster}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 768px"
+            className="object-cover"
+          />
+        ) : (
+          (event.glyph ?? "🎟")
+        )}
       </div>
 
       <h1 className="font-display mt-6 text-3xl font-extrabold uppercase leading-tight tracking-tight">

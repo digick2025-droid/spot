@@ -1,52 +1,7 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
-
-/**
- * `beforeinstallprompt` n'est pas standardisé : absent de lib.dom, absent
- * de Safari. On en déclare le strict nécessaire plutôt que d'élargir les
- * types globaux pour un événement d'un seul moteur.
- */
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
-/** « installé » (donc rien à proposer), « iOS » (mode d'emploi), ou le reste. */
-type Surface = "installed" | "ios" | "other";
-
-const MEDIA = "(display-mode: standalone)";
-
-function subscribe(onChange: () => void): () => void {
-  const media = window.matchMedia(MEDIA);
-  media.addEventListener("change", onChange);
-  window.addEventListener("appinstalled", onChange);
-  return () => {
-    media.removeEventListener("change", onChange);
-    window.removeEventListener("appinstalled", onChange);
-  };
-}
-
-function getSnapshot(): Surface {
-  // `navigator.standalone` est la variante iOS, absente des types.
-  const iosStandalone = (navigator as Navigator & { standalone?: boolean })
-    .standalone;
-
-  if (window.matchMedia(MEDIA).matches || iosStandalone === true) {
-    return "installed";
-  }
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) ? "ios" : "other";
-}
-
-/**
- * Sur le serveur, rien n'est connu de l'appareil. On répond « installé » :
- * la carte est donc absente du HTML initial et apparaît après hydratation,
- * plutôt que de s'afficher puis de disparaître sous les yeux.
- */
-function getServerSnapshot(): Surface {
-  return "installed";
-}
+import { useInstallSurface } from "./install-surface";
 
 /**
  * Invitation à installer SPOT sur l'écran d'accueil.
@@ -67,21 +22,7 @@ function getServerSnapshot(): Surface {
  */
 export function InstallPrompt() {
   const t = useTranslations("pwa");
-  const surface = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-
-  useEffect(() => {
-    const onBeforeInstall = (event: Event) => {
-      // Sans preventDefault, Chrome affiche sa propre bannière au moment
-      // qui l'arrange — on préfère la proposer à cet endroit-ci.
-      event.preventDefault();
-      setDeferred(event as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", onBeforeInstall);
-    return () =>
-      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-  }, []);
+  const { surface, deferred, clearDeferred } = useInstallSurface();
 
   if (surface === "installed") return null;
   if (!deferred && surface !== "ios") return null;
@@ -101,7 +42,7 @@ export function InstallPrompt() {
             // Un événement retenu n'est utilisable qu'une fois : qu'elle
             // soit acceptée ou refusée, l'invitation disparaît.
             await deferred.userChoice;
-            setDeferred(null);
+            clearDeferred();
           }}
           className="mt-4 w-full rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white transition-opacity hover:opacity-90"
         >

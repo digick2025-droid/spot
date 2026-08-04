@@ -5,6 +5,12 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { requireProfile } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
+import {
+  POSTER_BUCKET,
+  POSTER_MAX_BYTES,
+  POSTER_MIME_TYPES,
+  posterExtension,
+} from "@/lib/posters";
 import { getMyOrganizer } from "./organizer";
 import type { OrganizerFormState } from "./organizer-state";
 
@@ -165,7 +171,46 @@ export async function createEvent(
 
   if (tiers.length === 0) return { error: t("errors.invalidTiers") };
 
+  // L'affiche est facultative ; un champ vide arrive comme un fichier de
+  // taille nulle, pas comme un champ absent.
+  const submitted = formData.get("poster");
+  const poster =
+    submitted instanceof File && submitted.size > 0 ? submitted : null;
+
+  if (poster) {
+    const accepted = (POSTER_MIME_TYPES as readonly string[]).includes(
+      poster.type
+    );
+    if (!accepted || poster.size > POSTER_MAX_BYTES) {
+      return { error: t("errors.invalidPoster") };
+    }
+  }
+
   const supabase = await createClient();
+
+  // L'affiche part AVANT l'événement : un dépôt refusé ne laisse ainsi
+  // aucune fiche publiée derrière lui, et l'organisateur peut corriger
+  // son image sans avoir à supprimer un événement déjà en ligne.
+  //
+  // Le nom du fichier est tiré au sort plutôt que dérivé du titre : il
+  // est public, et un slug d'événement encore secret n'a pas à fuiter
+  // par le nom de son affiche.
+  let posterPath: string | null = null;
+  if (poster) {
+    const extension = posterExtension(poster.type);
+    if (!extension) return { error: t("errors.invalidPoster") };
+
+    const path = `${organizer.id}/${crypto.randomUUID()}.${extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from(POSTER_BUCKET)
+      .upload(path, poster, { contentType: poster.type });
+
+    if (uploadError) {
+      console.error("[organisateur] dépôt de l'affiche échoué", uploadError);
+      return { error: t("errors.posterUpload") };
+    }
+    posterPath = path;
+  }
 
   // La description saisie est recopiée dans les deux langues : la fiche
   // publique n'affiche que la colonne de la locale visitée, un seul
@@ -186,6 +231,7 @@ export async function createEvent(
       starts_at: startsAt.toISOString(),
       glyph: parsed.data.glyph || "🎟",
       gradient: randomGradient(),
+      poster_path: posterPath,
       status: "published",
       published_at: new Date().toISOString(),
     })
@@ -193,6 +239,11 @@ export async function createEvent(
     .single();
 
   if (error || !event) {
+    // Le fichier déjà déposé n'aurait plus de fiche à illustrer : on le
+    // retire plutôt que de laisser un orphelin dans le bucket.
+    if (posterPath) {
+      await supabase.storage.from(POSTER_BUCKET).remove([posterPath]);
+    }
     console.error("[organisateur] création de l'événement échouée", error);
     return { error: t("errors.unavailable") };
   }
@@ -212,6 +263,9 @@ export async function createEvent(
     // Un événement publié sans billet n'est pas achetable : on retire la
     // coquille plutôt que de la laisser en ligne.
     await supabase.from("events").delete().eq("id", event.id);
+    if (posterPath) {
+      await supabase.storage.from(POSTER_BUCKET).remove([posterPath]);
+    }
     console.error("[organisateur] création des billets échouée", tiersError);
     return { error: t("errors.unavailable") };
   }

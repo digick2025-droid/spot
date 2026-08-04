@@ -23,7 +23,7 @@ export async function AppHeader({
   return (
     <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 pt-6">
       <Link
-        href="/"
+        href="/accueil"
         aria-label="SPOT"
         className="font-display text-2xl font-extrabold tracking-tight"
       >

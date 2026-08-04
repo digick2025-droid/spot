@@ -90,7 +90,7 @@ export async function verifyOtp(
   // redirect() lève une exception de contrôle de flux : rien ne s'exécute
   // après, et elle ne doit pas être avalée par un try/catch. On retourne
   // son résultat (`never`) pour que TypeScript voie bien la sortie.
-  return redirect({ href: "/", locale });
+  return redirect({ href: "/accueil", locale });
 }
 
 /** Renvoi d'un nouveau code. */
@@ -150,5 +150,7 @@ export async function signOut() {
   await supabase.auth.signOut();
 
   const locale = await getLocale();
+  // Vers la vitrine publique, pas vers l'accueil de l'application : sans
+  // session, celui-ci n'a plus rien de personnel à montrer.
   redirect({ href: "/", locale });
 }

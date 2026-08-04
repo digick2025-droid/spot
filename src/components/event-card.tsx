@@ -1,7 +1,9 @@
+import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { formatEventDateShort, formatPriceXaf } from "@/lib/format";
+import { posterUrl } from "@/lib/posters";
 import { lowestPrice, type EventSummary } from "@/lib/db/events";
 
 const FALLBACK_GRADIENT = "linear-gradient(135deg,#FF6B35,#C2410C)";
@@ -10,18 +12,31 @@ export async function EventCard({ event }: { event: EventSummary }) {
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("events");
   const from = lowestPrice(event);
+  const poster = posterUrl(event.poster_path);
 
   return (
     <Link
       href={`/evenements/${event.slug}`}
       className="group flex flex-col overflow-hidden rounded-[20px] border border-white/10 bg-card transition-colors hover:border-brand/50"
     >
+      {/* L'affiche, quand elle existe ; sinon le dégradé et l'emoji, qui
+          restent le repli de toutes les fiches créées sans image. */}
       <div
-        className="flex h-28 items-center justify-center text-4xl"
+        className="relative flex h-28 items-center justify-center overflow-hidden text-4xl"
         style={{ background: event.gradient ?? FALLBACK_GRADIENT }}
         aria-hidden
       >
-        {event.glyph ?? "🎟"}
+        {poster ? (
+          <Image
+            src={poster}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, 360px"
+            className="object-cover"
+          />
+        ) : (
+          (event.glyph ?? "🎟")
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-4">

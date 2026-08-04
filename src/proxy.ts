@@ -49,11 +49,19 @@ export default async function proxy(request: NextRequest) {
 export const config = {
   // Tout sauf les routes API, les internes Next.js et les fichiers statiques.
   //
-  // « apple-icon » est nommément exclu : les routes de métadonnées de Next
-  // n'ont pas d'extension, donc le filtre `.*\..*` ne les attrape pas, et
-  // next-intl réécrivait /apple-icon en /fr/apple-icon — soit un 404 et
-  // une icône absente de l'écran d'accueil iOS. Toute future route de
-  // métadonnées sans extension (icon, opengraph-image) est à ajouter ici ;
-  // /manifest.webmanifest et /icons/*.png portent un point et passent déjà.
-  matcher: "/((?!api|trpc|_next|_vercel|apple-icon|.*\\..*).*)",
+  // « apple-icon » et « opengraph-image » sont nommément exclus : les
+  // routes de métadonnées de Next n'ont pas d'extension, donc le filtre
+  // `.*\..*` ne les attrape pas, et next-intl réécrivait /apple-icon en
+  // /fr/apple-icon — soit un 404 et une icône absente de l'écran d'accueil
+  // iOS. Même piège pour les vignettes de partage, à ceci près qu'elles
+  // vivent aussi au fond de l'arborescence : d'où `.*/opengraph-image`,
+  // qui couvre /fr/evenements/<slug>/opengraph-image. Sans cette seconde
+  // alternative, WhatsApp et Facebook recevraient une redirection ou un
+  // 404 en allant chercher l'image, et le lien partagé arriverait nu.
+  //
+  // Toute future route de métadonnées sans extension (icon, twitter-image)
+  // est à ajouter ici ; /manifest.webmanifest et /icons/*.png portent un
+  // point et passent déjà.
+  matcher:
+    "/((?!api|trpc|_next|_vercel|apple-icon|opengraph-image|.*/opengraph-image|.*\\..*).*)",
 };

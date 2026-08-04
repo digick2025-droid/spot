@@ -3,9 +3,11 @@ import type { MetadataRoute } from "next";
 /**
  * Manifeste PWA — ce qui rend SPOT installable sur l'écran d'accueil.
  *
- * `start_url: "/"` ouvre la version française : `localePrefix: "as-needed"`
- * fait de « / » la racine FR, et un utilisateur anglophone sera redirigé
- * vers /en comme depuis n'importe quel autre point d'entrée.
+ * `start_url: "/accueil"` ouvre l'application elle-même, pas la vitrine
+ * publique : une fois installée, il n'y a plus rien à vendre à celui qui
+ * lance l'icône. La version française est servie sans préfixe
+ * (`localePrefix: "as-needed"`), et un utilisateur anglophone sera
+ * redirigé vers /en/accueil comme depuis n'importe quel point d'entrée.
  *
  * Les couleurs sont celles de la coque sombre du participant (ink), pas
  * du thème clair Organisateur/Admin : c'est l'écran d'accueil et l'écran
@@ -17,7 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "SPOT",
     description:
       "Trouve les événements du Cameroun et paie tes billets en Mobile Money.",
-    start_url: "/",
+    start_url: "/accueil",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

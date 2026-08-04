@@ -1,13 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { notFound } from "next/navigation";
-import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
-import { AppHeader } from "@/components/app-header";
-import { BottomNav } from "@/components/bottom-nav";
-import { getOwnedOrganizers, getUser } from "@/lib/auth/dal";
-import { getUnreadNotificationCount } from "@/lib/db/notifications";
+import { getSiteUrl } from "@/lib/site-url";
 import "../globals.css";
 
 const manrope = Manrope({
@@ -42,11 +39,24 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
   return {
+    // Sans base, les vignettes Open Graph seraient annoncées en relatif
+    // et les robots de WhatsApp ou Facebook ne les résoudraient pas.
+    metadataBase: new URL(getSiteUrl()),
     title: t("title"),
     description: t("description"),
   };
 }
 
+/**
+ * Coque commune aux deux mondes — et rien de plus.
+ *
+ * Le produit lui-même (barre d'onglets, en-tête) vit dans le groupe
+ * `(app)` ; la vitrine publique, qui a son propre en-tête et son pied de
+ * page, vit dans `(site)`. Les deux partagent d'ici les polices et la
+ * locale, mais aucune chrome — et chacun installe son propre fournisseur
+ * next-intl, pour n'embarquer côté client que les messages qui le
+ * regardent.
+ */
 export default async function LocaleLayout({
   children,
   params,
@@ -60,29 +70,12 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
 
-  // Sert uniquement à décider des onglets affichés : les pages et les
-  // Server Actions revérifient les droits pour leur propre compte.
-  const [user, ownedOrganizers] = await Promise.all([
-    getUser(),
-    getOwnedOrganizers(),
-  ]);
-  const unreadCount = user ? await getUnreadNotificationCount() : 0;
-
   return (
     <html
       lang={locale}
       className={`${manrope.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider>
-          <AppHeader isSignedIn={user !== null} unreadCount={unreadCount} />
-          {children}
-          <BottomNav
-            canScan={ownedOrganizers.length > 0}
-            isSignedIn={user !== null}
-          />
-        </NextIntlClientProvider>
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

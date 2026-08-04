@@ -2,6 +2,8 @@ import { getTranslations, setRequestLocale, getLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
 import { EventCard } from "@/components/event-card";
+import { InstallBanner } from "@/components/install-banner";
+import { getUser } from "@/lib/auth/dal";
 import { listCategories, listCities, listEvents } from "@/lib/db/events";
 import { DiscoverFilters } from "./filters";
 
@@ -21,10 +23,11 @@ export default async function DiscoverPage({
   const t = await getTranslations("events");
   const activeLocale = (await getLocale()) as Locale;
 
-  const [events, categories, cities] = await Promise.all([
+  const [events, categories, cities, user] = await Promise.all([
     listEvents({ city: ville, category: categorie, search: q }),
     listCategories(),
     listCities(),
+    getUser(),
   ]);
 
   const isFiltered = Boolean(
@@ -48,6 +51,10 @@ export default async function DiscoverPage({
         selectedCategory={categorie ?? "all"}
         query={q ?? ""}
       />
+
+      {/* Le visiteur venu d'un lien partagé n'a pas de session : c'est à
+          lui, et à lui seul, que l'invitation à installer s'adresse. */}
+      {!user && <InstallBanner />}
 
       <p className="mt-6 text-[13px] text-smoke">
         {t("resultCount", { count: events.length })}

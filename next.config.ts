@@ -5,7 +5,36 @@ const withNextIntl = createNextIntlPlugin();
 
 // La configuration Supabase vient exclusivement de l'environnement
 // (.env.local en local, variables du projet en déploiement) — voir .env.example.
+
+/**
+ * Hôte du Storage Supabase, d'où viennent les affiches d'événement.
+ *
+ * Lu à la construction : sans variable d'environnement, la liste reste
+ * vide et le build passe quand même (aucune page n'est prérendue), comme
+ * le reste de la configuration Supabase.
+ */
+function supabaseImagePatterns() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return [];
+
+  try {
+    return [
+      {
+        protocol: "https" as const,
+        hostname: new URL(url).hostname,
+        pathname: "/storage/v1/object/public/spot-posters/**",
+      },
+    ];
+  } catch {
+    return [];
+  }
+}
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: supabaseImagePatterns(),
+  },
+
   /**
    * En-têtes de sécurité, recommandés par le guide PWA de Next.
    *

@@ -17,7 +17,7 @@ export default async function ConnexionPage({
 
   // Déjà connecté : rien à faire ici.
   if (await getUser()) {
-    redirect({ href: "/", locale });
+    redirect({ href: "/accueil", locale });
   }
 
   const t = await getTranslations("auth");

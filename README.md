@@ -43,18 +43,30 @@ Voir `.env.example`. Aucun secret n'est commité ; les clés `NEXT_PUBLIC_*` son
 ## Structure
 
 ```
-messages/            dictionnaires FR/EN (next-intl)
-src/app/[locale]/    pages (routing i18n : / = FR, /en = EN)
-src/i18n/            routing, request config, navigation next-intl
-src/lib/supabase/    clients browser + serveur (@supabase/ssr, schéma « spot »)
-src/proxy.ts         middleware de détection de locale
+messages/                  dictionnaires FR/EN (next-intl)
+src/app/[locale]/(site)/   vitrine publique : /, /organisateurs, /creators
+src/app/[locale]/(app)/    l'application : /accueil, /decouvrir, /billets…
+src/components/site/       briques de la vitrine (en-tête, pied, démos)
+src/i18n/                  routing, request config, navigation next-intl
+src/lib/supabase/          clients browser + serveur (@supabase/ssr, schéma « spot »)
+src/proxy.ts               middleware de détection de locale
 ```
+
+Les deux groupes de routes ont chacun leur coque : `(site)` porte l'en-tête et le pied de page de la vitrine, `(app)` la barre d'onglets du produit. Chacun installe son propre `NextIntlClientProvider`, pour n'envoyer au client que les messages qui le concernent.
+
+**La racine `/` sert la vitrine**, pas l'application : l'accueil personnalisé vit à `/accueil` (`/en/accueil` en anglais), qui est aussi le `start_url` du manifeste PWA et la destination après connexion.
+
+## Images
+
+**Affiches d'événement** — bucket Storage `spot-posters`, public en lecture (une affiche est une image de promotion), écriture sous RLS : le chemin est `<organizer_id>/<uuid>.<ext>` et une policy vérifie que le premier segment appartient bien à l'appelant. L'événement n'en garde que le chemin, dans `spot.events.poster_path`. Sans affiche, le dégradé et l'emoji restent le repli — aucune fiche ancienne n'est cassée. Le rendu passe par `next/image` : l'hôte Supabase est déclaré dans `next.config.ts`.
+
+**Vignettes de partage** — dessinées avec `ImageResponse`, comme les icônes : `src/app/opengraph-image.tsx` pour la marque, `…/evenements/[slug]/opengraph-image.tsx` pour chaque événement (titre, date, lieu, prix, et l'affiche en fond quand elle existe). Ces routes n'ont pas d'extension : elles sont **exclues du matcher de `src/proxy.ts`**, faute de quoi next-intl les préfixerait d'une locale et WhatsApp comme Facebook recevraient une redirection ou un 404. `NEXT_PUBLIC_SITE_URL` fixe la base des URL absolues.
 
 ## Déploiement
 
 Déployé sur Vercel (team `digick`, projet `spot`) — https://spot-gamma-azure.vercel.app, dépôt GitHub connecté, chaque push sur `main` déclenche un build de production.
 
-Variables d'environnement à configurer dans le dashboard Vercel, sur les trois environnements : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET`, plus les quatre `CAMPAY_*` quand `PAYMENT_PROVIDER=campay`. La liste fait foi dans `.env.example`.
+Variables d'environnement à configurer dans le dashboard Vercel, sur les trois environnements : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `PAYMENT_PROVIDER`, `PAYMENT_WEBHOOK_SECRET`, plus les quatre `CAMPAY_*` quand `PAYMENT_PROVIDER=campay`, et `NEXT_PUBLIC_SITE_URL` le jour où un domaine propre remplace l'adresse `.vercel.app`. La liste fait foi dans `.env.example`.
 
 Un build sans ces valeurs **réussit quand même** : aucune page n'est prérendue, donc l'absence de clés Supabase ne se voit qu'à la première requête, sous forme de 500. Un déploiement vert ne prouve donc rien — vérifier une page.
 

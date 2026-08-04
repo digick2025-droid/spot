@@ -42,10 +42,10 @@ export function BottomNav({
   const tabs: Tab[] = [
     {
       key: "home",
-      href: "/",
+      href: "/accueil",
       emoji: "🏠",
       label: t("home"),
-      isActive: (p) => p === "/",
+      isActive: (p) => p === "/accueil",
     },
     {
       key: "discover",

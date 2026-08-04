@@ -27,6 +27,8 @@ export type EventSummary = {
   starts_at: string;
   glyph: string | null;
   gradient: string | null;
+  /** Chemin dans le bucket « spot-posters », null tant qu'aucune affiche. */
+  poster_path: string | null;
   category_key: string | null;
   organizers: EventOrganizer;
   ticket_types: { price_xaf: number }[];
@@ -49,13 +51,15 @@ export type EventDetail = Omit<EventSummary, "ticket_types"> & {
 };
 
 const SUMMARY_COLUMNS = `
-  id, slug, title, city, venue, starts_at, glyph, gradient, category_key,
+  id, slug, title, city, venue, starts_at, glyph, gradient, poster_path,
+  category_key,
   organizers ( id, name, slug, glyph, gradient, verified ),
   ticket_types ( price_xaf )
 `;
 
 const DETAIL_COLUMNS = `
-  id, slug, title, city, venue, starts_at, glyph, gradient, category_key,
+  id, slug, title, city, venue, starts_at, glyph, gradient, poster_path,
+  category_key,
   description_fr, description_en,
   organizers ( id, name, slug, glyph, gradient, verified ),
   ticket_types ( id, name_fr, name_en, price_xaf, quantity_total, quantity_sold, sort )
