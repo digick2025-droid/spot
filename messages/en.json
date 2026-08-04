@@ -149,7 +149,11 @@
     "signInToBuy": "Sign in to buy",
     "aboutEvent": "About",
     "notFound": "Event not found",
-    "notFoundHint": "It may have been removed, or the address is wrong."
+    "notFoundHint": "It may have been removed, or the address is wrong.",
+    "share": "Share",
+    "linkCopied": "Link copied ✓",
+    "lineup": "Organised by",
+    "getTicket": "Get my spot"
   },
   "checkout": {
     "title": "Payment",

@@ -149,7 +149,11 @@
     "signInToBuy": "Se connecter pour acheter",
     "aboutEvent": "À propos",
     "notFound": "Événement introuvable",
-    "notFoundHint": "Il a peut-être été retiré ou l'adresse est incorrecte."
+    "notFoundHint": "Il a peut-être été retiré ou l'adresse est incorrecte.",
+    "share": "Partager",
+    "linkCopied": "Lien copié ✓",
+    "lineup": "Organisé par",
+    "getTicket": "Prendre ma place"
   },
   "checkout": {
     "title": "Paiement",

@@ -15,14 +15,16 @@ export function LocaleSwitcher({ current }: { current: Locale }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex gap-1 rounded-full bg-card p-1 text-xs font-semibold">
+    <div className="flex gap-0.5 rounded-full bg-white/5 p-0.5 text-[11px] font-bold ring-1 ring-white/10">
       {routing.locales.map((locale) => (
         <Link
           key={locale}
           href={pathname}
           locale={locale}
-          className={`rounded-full px-3 py-1.5 transition-colors ${
-            locale === current ? "bg-brand text-white" : "text-mist"
+          className={`press rounded-full px-2.5 py-1.5 transition-colors ${
+            locale === current
+              ? "grad-ember text-white"
+              : "text-mist hover:text-white"
           }`}
         >
           {locale.toUpperCase()}

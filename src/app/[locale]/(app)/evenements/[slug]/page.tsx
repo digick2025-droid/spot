@@ -5,9 +5,12 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { BackIcon, DateIcon, DoneIcon, PlaceIcon } from "@/components/icons";
+import { ShareButton } from "@/components/share-button";
 import { getEventBySlug } from "@/lib/db/events";
 import { formatEventDate, formatPriceXaf } from "@/lib/format";
 import { posterUrl } from "@/lib/posters";
+import { getSiteUrl } from "@/lib/site-url";
 import { getUser } from "@/lib/auth/dal";
 import { TicketPicker } from "./ticket-picker";
 
@@ -48,6 +51,7 @@ export default async function EventPage({
   const t = await getTranslations("events");
   const user = await getUser();
   const poster = posterUrl(event.poster_path);
+  const gradient = event.gradient ?? FALLBACK_GRADIENT;
 
   const description =
     activeLocale === "fr" ? event.description_fr : event.description_en;
@@ -60,84 +64,128 @@ export default async function EventPage({
     remaining: tt.quantity_total - tt.quantity_sold,
   }));
 
+  const shareUrl = `${getSiteUrl()}${
+    activeLocale === "fr" ? "" : `/${activeLocale}`
+  }/evenements/${event.slug}`;
+
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-      <Link
-        href="/decouvrir"
-        className="text-[13px] font-semibold text-mist hover:text-white"
-      >
-        ← {t("backToEvents")}
-      </Link>
-
-      {/* L'affiche téléversée par l'organisateur, à défaut le dégradé. */}
-      <div
-        className="relative mt-4 flex aspect-square items-center justify-center overflow-hidden rounded-[20px] text-6xl"
-        style={{ background: event.gradient ?? FALLBACK_GRADIENT }}
+    <main className="relative flex-1 overflow-hidden">
+      {/* Le halo de l'événement, dilué dans le haut de l'écran. C'est ce
+          qui donne à chaque fiche sa couleur propre, avant même l'affiche. */}
+      <span
         aria-hidden
-      >
-        {poster ? (
-          <Image
-            src={poster}
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 768px"
-            className="object-cover"
-          />
-        ) : (
-          (event.glyph ?? "🎟")
-        )}
-      </div>
+        className="halo inset-x-0 -top-16 h-[300px] opacity-40"
+        style={{ "--halo": gradient } as React.CSSProperties}
+      />
 
-      <h1 className="font-display mt-6 text-3xl font-extrabold uppercase leading-tight tracking-tight">
-        {event.title}
-      </h1>
+      <div className="relative mx-auto w-full max-w-3xl px-5 pb-10 pt-4">
+        <Link
+          href="/decouvrir"
+          className="press inline-flex items-center gap-1.5 text-[13px] font-semibold text-mist hover:text-white"
+        >
+          <BackIcon size={16} strokeWidth={2.2} aria-hidden />
+          {t("backToEvents")}
+        </Link>
 
-      <dl className="mt-4 flex flex-col gap-2 text-[14px]">
-        <div className="flex gap-2">
-          <dt aria-hidden>📅</dt>
-          <dd>{formatEventDate(event.starts_at, activeLocale)}</dd>
+        {/* L'affiche téléversée par l'organisateur, à défaut le dégradé. */}
+        <div
+          className="relative mx-auto mt-4 flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-sheet text-6xl shadow-[0_28px_70px_-24px_rgb(0_0_0/0.9)]"
+          style={{ background: gradient }}
+          aria-hidden
+        >
+          {poster ? (
+            <Image
+              src={poster}
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 448px"
+              className="object-cover"
+            />
+          ) : (
+            (event.glyph ?? "🎟")
+          )}
         </div>
-        <div className="flex gap-2">
-          <dt aria-hidden>📍</dt>
-          <dd>
-            {event.venue} · {event.city}
-          </dd>
-        </div>
-        <div className="flex gap-2">
-          <dt aria-hidden>🎤</dt>
-          <dd>
-            <Link
-              href={`/organisateurs/${event.organizers.slug}`}
-              className="text-mist underline-offset-4 hover:text-white hover:underline"
-            >
-              {event.organizers.name}
-            </Link>
-          </dd>
-        </div>
-      </dl>
 
-      {description && (
-        <section className="mt-8">
-          <h2 className="font-display text-[15px] font-extrabold">
-            {t("aboutEvent")}
-          </h2>
-          <p className="mt-2 text-[14px] leading-relaxed text-mist">
-            {description}
-          </p>
-        </section>
-      )}
+        <h1 className="font-display mt-7 text-[30px] font-extrabold uppercase leading-[1.05] sm:text-4xl">
+          {event.title}
+        </h1>
 
-      <section className="mt-8">
-        <h2 className="font-display text-[15px] font-extrabold">
-          {t("chooseTicket")}
-        </h2>
-        <TicketPicker
-          eventSlug={event.slug}
-          ticketTypes={ticketTypes}
-          isSignedIn={Boolean(user)}
+        {/* L'organisateur tient le rôle de l'artiste : c'est lui qu'on
+            suit, et c'est à lui qu'on revient. */}
+        <Link
+          href={`/organisateurs/${event.organizers.slug}`}
+          className="press mt-4 inline-flex items-center gap-2.5"
+        >
+          <span
+            aria-hidden
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm"
+            style={{
+              background: event.organizers.gradient ?? FALLBACK_GRADIENT,
+            }}
+          >
+            {event.organizers.glyph ?? "🎪"}
+          </span>
+          <span className="flex items-center gap-1 text-[14px] font-bold">
+            {event.organizers.name}
+            {event.organizers.verified && (
+              <DoneIcon
+                size={13}
+                strokeWidth={3}
+                className="text-accent"
+                aria-hidden
+              />
+            )}
+          </span>
+        </Link>
+
+        <dl className="mt-5 flex flex-col gap-2.5 text-[14px]">
+          <div className="flex items-center gap-2.5">
+            <dt className="text-brand-bright">
+              <DateIcon size={17} strokeWidth={2.2} aria-hidden />
+              <span className="sr-only">{t("aboutEvent")}</span>
+            </dt>
+            <dd>{formatEventDate(event.starts_at, activeLocale)}</dd>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <dt className="text-brand-bright">
+              <PlaceIcon size={17} strokeWidth={2.2} aria-hidden />
+              <span className="sr-only">{t("lineup")}</span>
+            </dt>
+            <dd>
+              {event.venue} · {event.city}
+            </dd>
+          </div>
+        </dl>
+
+        <ShareButton
+          url={shareUrl}
+          title={event.title}
+          className="press mt-5 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2.5 text-[13px] font-bold text-fog ring-1 ring-white/12 hover:text-white"
         />
-      </section>
+
+        {description && (
+          <section className="mt-8">
+            <h2 className="font-display text-[17px] font-extrabold">
+              {t("aboutEvent")}
+            </h2>
+            <p className="mt-2.5 whitespace-pre-line text-[14px] leading-relaxed text-mist">
+              {description}
+            </p>
+          </section>
+        )}
+
+        <section className="mt-8">
+          <h2 className="font-display text-[17px] font-extrabold">
+            {t("chooseTicket")}
+          </h2>
+          <TicketPicker
+            eventSlug={event.slug}
+            ticketTypes={ticketTypes}
+            isSignedIn={Boolean(user)}
+          />
+        </section>
+      </div>
     </main>
   );
 }

@@ -1,45 +1,237 @@
 @import "tailwindcss";
 
 /*
- * Design system SPOT (source : maquette SPOT_Prototype__autonome_.html)
- * Espaces Participant/Creator = thème sombre · Espace Organisateur/Admin = thème clair
+ * Design system SPOT
+ *
+ * Principe directeur : un événement se regarde comme un album. L'affiche
+ * est carrée, l'organisateur tient le rôle de l'artiste, et chaque
+ * événement diffuse sa propre couleur — le halo — derrière sa carte, sa
+ * fiche et le spot qu'on partage. C'est de là que vient la profondeur,
+ * pas d'un empilement d'ombres grises.
+ *
+ * Deux mondes cohabitent : sombre pour le public et les créateurs,
+ * clair (« paper ») pour l'espace de travail des organisateurs.
  */
 @theme {
-  /* Fonds sombres */
-  --color-ink: #0b0b0f; /* fond principal */
-  --color-card: #18181b; /* cartes */
-  --color-shell: #111114; /* coque : barre de navigation */
+  /* ── Surfaces sombres, par élévation ─────────────────────────────
+     Trois niveaux suffisent : le fond, ce qui s'y pose, ce qui s'en
+     détache. Au-delà, l'œil ne fait plus la différence. */
+  --color-ink: #08080b; /* fond de page */
+  --color-surface: #101014; /* cartes posées */
+  --color-surface-high: #191920; /* cartes levées, feuilles, champs */
+  --color-shell: #0c0c11; /* coque : barre d'onglets, en-tête */
+  --color-card: #17171d; /* alias historique, encore référencé */
 
-  /* Marque */
-  --color-brand: #ff6b35; /* orange SPOT */
+  /* ── Marque ──────────────────────────────────────────────────────
+     L'orange reste le cœur ; le rose braise est le pivot qui permet au
+     dégradé de rejoindre le violet sans virer au marron. */
+  --color-brand: #ff6b35;
+  --color-brand-bright: #ff9155;
   --color-brand-deep: #c2410c;
-  --color-accent: #8b5cf6; /* violet accent */
+  --color-ember: #f0286d;
+  --color-accent: #8b5cf6;
   --color-accent-deep: #4c1d95;
 
-  /* Texte */
-  --color-mist: #a1a1aa; /* gris clair */
-  --color-smoke: #71717a; /* gris moyen */
+  /* ── Texte ───────────────────────────────────────────────────── */
+  --color-mist: #a1a1aa;
+  --color-smoke: #71717a;
   --color-fog: #e4e4e7;
 
-  /* Thème clair (Organisateur / Admin) */
-  --color-paper: #fafafa;
+  /* ── Thème clair (Organisateur / Admin) ──────────────────────── */
+  --color-paper: #f6f6f8;
   --color-paper-card: #ffffff;
 
-  /* États */
+  /* ── États ───────────────────────────────────────────────────── */
   --color-success: #22c55e;
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
 
-  /* Typographies */
+  /* ── Typographies ────────────────────────────────────────────── */
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Rayons ──────────────────────────────────────────────────── */
+  --radius-card: 1.25rem;
+  --radius-sheet: 1.75rem;
+}
+
+/*
+ * Dégradés nommés.
+ *
+ * Hors @theme : Tailwind n'a pas d'espace de noms pour les dégradés, et
+ * les exposer en variables les rend utilisables aussi bien en classe
+ * qu'en style inline (l'affiche d'un événement, par exemple).
+ *
+ * « braise » est la signature : la chaleur orange qui refroidit vers le
+ * violet de la nuit. Les deux autres en sont des déclinaisons — l'or
+ * pour ce qui touche à l'argent et aux billets, la nuit pour le PASS.
+ */
+:root {
+  --grad-ember: linear-gradient(
+    135deg,
+    #ff9155 0%,
+    #ff6b35 30%,
+    #f0286d 66%,
+    #8b5cf6 100%
+  );
+  --grad-heat: linear-gradient(135deg, #ffc24b 0%, #ff6b35 55%, #c2410c 100%);
+  --grad-night: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 45%, #4c1d95 100%);
+  --grad-hairline: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.14),
+    rgb(255 255 255 / 0.04)
+  );
 }
 
 body {
   background: var(--color-ink);
   color: #ffffff;
   font-family: var(--font-sans);
+  /* Les contrôles natifs (date, heure, select) suivent le fond sombre au
+     lieu d'arriver en blanc au milieu d'un écran noir. */
+  color-scheme: dark;
+  /* Le voile bleu d'Android au toucher trahit la page web ; les retours
+     tactiles sont gérés par .press. */
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* L'espace organisateur repasse en clair, contrôles natifs compris. */
+.theme-paper {
+  color-scheme: light;
+}
+
+/*
+ * Titres : le contraste d'échelle fait le premium, pas la graisse. Un
+ * display resserré au-dessus d'un corps de texte neutre.
+ */
+.font-display {
+  letter-spacing: -0.022em;
+}
+
+/* ── Focus ──────────────────────────────────────────────────────────
+   Un anneau unique pour tout le produit. Jamais supprimé : c'est le
+   seul repère de qui navigue au clavier. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ── Utilitaires de marque ────────────────────────────────────────── */
+
+/** Le dégradé signature, en fond. */
+@utility grad-ember {
+  background-image: var(--grad-ember);
+}
+
+/** Or chaud : prix, billets, revenus. */
+@utility grad-heat {
+  background-image: var(--grad-heat);
+}
+
+/** Nuit violette : SPOT PASS, statuts premium. */
+@utility grad-night {
+  background-image: var(--grad-night);
+}
+
+/**
+ * Texte en dégradé.
+ *
+ * `inline-block` est nécessaire : sur un span inline réparti sur deux
+ * lignes, le fond se découpe par fragment et le dégradé redémarre au
+ * milieu du mot.
+ */
+@utility text-ember {
+  display: inline-block;
+  background-image: var(--grad-ember);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/**
+ * Verre : la matière des barres et des feuilles posées sur le contenu.
+ *
+ * Le flou de fond a un coût sur les téléphones d'entrée de gamme, très
+ * présents sur ce marché : il n'est appliqué que là où le navigateur
+ * sait le faire, et la surface reste lisible sans lui.
+ */
+@utility glass {
+  background-color: color-mix(in oklab, var(--color-shell) 82%, transparent);
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .glass {
+    background-color: color-mix(in oklab, var(--color-shell) 62%, transparent);
+    backdrop-filter: blur(20px) saturate(160%);
+  }
+}
+
+/**
+ * Filet lumineux en haut d'une carte : une hairline claire qui simule
+ * la lumière rasante, comme sur une pochette en relief.
+ */
+@utility sheen {
+  position: relative;
+}
+
+.sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--grad-hairline);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/**
+ * Halo : la signature du produit.
+ *
+ * Une nappe floue de la couleur de l'événement, posée derrière son
+ * contenu. `--halo` reçoit le dégradé de l'événement ; à défaut, la
+ * braise de la marque.
+ */
+@utility halo {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--halo, var(--grad-ember));
+  filter: blur(56px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/** Lueur portée sous un élément de marque (bouton principal, pastille). */
+@utility glow-brand {
+  box-shadow:
+    0 8px 24px -8px color-mix(in oklab, var(--color-brand) 65%, transparent),
+    0 2px 8px -2px rgb(0 0 0 / 0.4);
+}
+
+/**
+ * Retour tactile.
+ *
+ * Sur mobile il n'y a pas de survol : l'enfoncement est le seul signal
+ * qu'un appui a été reçu. 120 ms, sous le seuil où l'on perçoit un
+ * délai.
+ */
+@utility press {
+  transition:
+    transform 120ms ease-out,
+    opacity 120ms ease-out;
+}
+
+.press:active {
+  transform: scale(0.97);
+}
+
+/* ── Animations ─────────────────────────────────────────────────── */
 
 /* Point orange animé du logo SP●T */
 @keyframes spot-pulse {
@@ -59,8 +251,29 @@ body {
   width: 0.55em;
   height: 0.55em;
   border-radius: 9999px;
-  background: var(--color-brand);
+  background-image: var(--grad-ember);
   animation: spot-pulse 1.8s ease-in-out infinite;
+}
+
+/* Voile de chargement, pour les surfaces en attente de données. */
+@keyframes spot-shimmer {
+  from {
+    background-position: -180% 0;
+  }
+  to {
+    background-position: 180% 0;
+  }
+}
+
+.shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 20%,
+    rgb(255 255 255 / 0.06) 50%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: spot-shimmer 1.4s linear infinite;
 }
 
 /*
@@ -89,5 +302,17 @@ body {
       animation-timeline: view();
       animation-range: entry 0% cover 22%;
     }
+  }
+}
+
+/* Qui a demandé moins de mouvement n'en reçoit aucun de décoratif. */
+@media (prefers-reduced-motion: reduce) {
+  .spot-dot,
+  .shimmer {
+    animation: none;
+  }
+
+  .press:active {
+    transform: none;
   }
 }

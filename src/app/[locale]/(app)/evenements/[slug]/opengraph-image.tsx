@@ -5,13 +5,21 @@ import { posterUrl } from "@/lib/posters";
 import { routing, type Locale } from "@/i18n/routing";
 
 /**
- * Vignette de partage d'un événement — ce que voient WhatsApp, Facebook
- * et X quand quelqu'un colle le lien de la fiche.
+ * Le spot à partager — ce que voient WhatsApp, Facebook et X quand
+ * quelqu'un colle le lien d'une fiche.
  *
- * Le dégradé de l'événement sert de fond ; le titre, la date, le lieu et
- * le prix d'entrée sont dessinés par-dessus. Pas d'emoji : Satori les
- * rend en téléchargeant des images sur un CDN, dépendance qu'une vignette
- * de partage n'a pas à porter.
+ * L'affiche est carrée, et elle est montrée entière, posée à gauche
+ * comme une pochette d'album. C'est la seule mise en page qui la
+ * respecte : en fond perdu sur un cadre 1200×630, le recadrage mangeait
+ * le haut et le bas — précisément là où les organisateurs d'ici
+ * écrivent le titre de la soirée et le prix d'entrée.
+ *
+ * Le dégradé de l'événement occupe le fond, assombri en biais pour que
+ * le texte reste lisible et que la couleur continue de rayonner sur le
+ * bord droit : c'est le halo du produit, transposé au partage.
+ *
+ * Pas d'emoji : Satori les rend en téléchargeant des images sur un CDN,
+ * dépendance qu'une vignette de partage n'a pas à porter.
  *
  * ⚠ Cette route n'a pas d'extension : elle doit rester hors du matcher du
  * proxy (voir src/proxy.ts), sinon next-intl la préfixe d'une locale et
@@ -21,13 +29,43 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "SPOT — fiche d'un événement";
 
-const INK = "#0B0B0F";
+const INK = "#08080B";
 const BRAND = "#FF6B35";
 const FALLBACK_GRADIENT = "linear-gradient(135deg,#FF6B35,#C2410C)";
 
-/** Le titre déborderait au-delà de deux lignes : on coupe proprement. */
+const POSTER_SIZE = 466;
+
+/** Le titre déborderait au-delà de trois lignes : on coupe proprement. */
 function clamp(value: string, max: number): string {
   return value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
+}
+
+/** Le logo SP●T, dessiné plutôt qu'écrit — la police n'a pas ce point. */
+function Wordmark({ size: fontSize, dot }: { size: number; dot: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        color: "#FFFFFF",
+        fontSize,
+        fontWeight: 800,
+        letterSpacing: -2,
+      }}
+    >
+      SP
+      <div
+        style={{
+          width: fontSize * 0.38,
+          height: fontSize * 0.38,
+          margin: `0 ${fontSize * 0.1}px`,
+          borderRadius: fontSize,
+          background: dot,
+        }}
+      />
+      T
+    </div>
+  );
 }
 
 /**
@@ -79,22 +117,9 @@ export default async function EventOpengraphImage({
             alignItems: "center",
             justifyContent: "center",
             background: INK,
-            color: "#FFFFFF",
-            fontSize: 140,
-            fontWeight: 800,
           }}
         >
-          SP
-          <div
-            style={{
-              width: 54,
-              height: 54,
-              margin: "0 13px",
-              borderRadius: 54,
-              background: BRAND,
-            }}
-          />
-          T
+          <Wordmark size={140} dot={BRAND} />
         </div>
       ),
       { ...size }
@@ -102,11 +127,12 @@ export default async function EventOpengraphImage({
   }
 
   const poster = await fetchPoster(posterUrl(event.poster_path));
+  const gradient = event.gradient ?? FALLBACK_GRADIENT;
   const from = lowestPrice(event);
   const label =
     activeLocale === "fr"
       ? Number.isFinite(from)
-        ? `À partir de ${formatPriceXaf(from)}`
+        ? `Dès ${formatPriceXaf(from)}`
         : "Entrée libre"
       : Number.isFinite(from)
         ? `From ${formatPriceXaf(from)}`
@@ -120,153 +146,142 @@ export default async function EventOpengraphImage({
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: event.gradient ?? FALLBACK_GRADIENT,
-          padding: 72,
+          alignItems: "center",
+          background: gradient,
+          padding: 64,
         }}
       >
-        {/* L'affiche en fond, sous un voile sombre : sans lui, un titre
-            blanc posé sur une image claire deviendrait illisible. */}
-        {poster && (
-          // Satori dessine un arbre JSX en image : next/image n'y a pas
-          // cours, seule la balise brute est comprise.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={poster}
-            alt=""
-            width={size.width}
-            height={size.height}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: size.width,
-              height: size.height,
-              objectFit: "cover",
-            }}
-          />
-        )}
-        {poster && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: size.width,
-              height: size.height,
-              display: "flex",
-              // Léger en haut, où l'affiche doit rester lisible ; dense
-              // en bas, où passent le titre et le prix.
-              background:
-                "linear-gradient(180deg, rgba(11,11,15,0.28), rgba(11,11,15,0.86))",
-            }}
-          />
-        )}
-
-        {/* Bandeau supérieur : la marque, puis la date */}
+        {/* Le voile : dense à gauche, où vit le texte ; transparent à
+            droite, où la couleur de l'événement doit continuer de vivre. */}
         <div
           style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: size.width,
+            height: size.height,
+            display: "flex",
+            background:
+              "linear-gradient(105deg, rgba(8,8,11,0.97) 0%, rgba(8,8,11,0.93) 46%, rgba(8,8,11,0.72) 78%, rgba(8,8,11,0.48) 100%)",
+          }}
+        />
+
+        {/* L'affiche, entière */}
+        <div
+          style={{
+            position: "relative",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: "center",
+            width: POSTER_SIZE,
+            height: POSTER_SIZE,
+            flexShrink: 0,
+            borderRadius: 34,
+            background: gradient,
+            overflow: "hidden",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              color: "#FFFFFF",
-              fontSize: 46,
-              fontWeight: 800,
-              letterSpacing: -2,
-            }}
-          >
-            SP
-            <div
+          {poster ? (
+            // Satori dessine un arbre JSX en image : next/image n'y a pas
+            // cours, seule la balise brute est comprise.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={poster}
+              alt=""
+              width={POSTER_SIZE}
+              height={POSTER_SIZE}
               style={{
-                width: 18,
-                height: 18,
-                margin: "0 5px",
-                borderRadius: 18,
-                // Sur une affiche voilée de sombre, un point encre
-                // disparaîtrait ; sur un dégradé clair, c'est l'inverse.
-                background: poster ? "#FFFFFF" : INK,
+                width: POSTER_SIZE,
+                height: POSTER_SIZE,
+                objectFit: "cover",
               }}
             />
-            T
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              padding: "12px 26px",
-              borderRadius: 999,
-              background: "rgba(11,11,15,0.55)",
-              color: "#FFFFFF",
-              fontSize: 28,
-            }}
-          >
-            {formatEventDate(event.starts_at, activeLocale)}
-          </div>
+          ) : (
+            <Wordmark size={92} dot={INK} />
+          )}
         </div>
 
-        {/* Le titre, puis le lieu */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div
-            style={{
-              display: "flex",
-              color: "#FFFFFF",
-              fontSize: 84,
-              fontWeight: 800,
-              letterSpacing: -3,
-              lineHeight: 1.05,
-            }}
-          >
-            {clamp(event.title, 60)}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              marginTop: 20,
-              color: "rgba(255,255,255,0.86)",
-              fontSize: 34,
-            }}
-          >
-            {clamp(`${event.venue} · ${event.city}`, 70)}
-          </div>
-        </div>
-
-        {/* Le prix d'entrée, sur une souche de billet */}
+        {/* La fiche, à droite */}
         <div
           style={{
+            position: "relative",
             display: "flex",
-            alignItems: "center",
+            flexDirection: "column",
             justifyContent: "space-between",
+            height: POSTER_SIZE,
+            marginLeft: 52,
+            flexGrow: 1,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              padding: "18px 34px",
-              borderRadius: 999,
-              background: INK,
-              color: "#FFFFFF",
-              fontSize: 34,
-              fontWeight: 800,
-            }}
-          >
-            {label}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <Wordmark size={38} dot={BRAND} />
+
+            <div
+              style={{
+                display: "flex",
+                marginTop: 26,
+                color: BRAND,
+                fontSize: 25,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+              }}
+            >
+              {formatEventDate(event.starts_at, activeLocale).toUpperCase()}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                marginTop: 12,
+                color: "#FFFFFF",
+                fontSize: 54,
+                fontWeight: 800,
+                letterSpacing: -2,
+                lineHeight: 1.06,
+              }}
+            >
+              {clamp(event.title, 52)}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                marginTop: 16,
+                color: "rgba(255,255,255,0.72)",
+                fontSize: 27,
+              }}
+            >
+              {clamp(`${event.venue} · ${event.city}`, 44)}
+            </div>
           </div>
-          <div
-            style={{
-              display: "flex",
-              color: poster ? "rgba(255,255,255,0.82)" : "rgba(11,11,15,0.75)",
-              fontSize: 28,
-              fontWeight: 700,
-            }}
-          >
-            {clamp(event.organizers.name, 40)}
+
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div
+              style={{
+                display: "flex",
+                color: "rgba(255,255,255,0.62)",
+                fontSize: 24,
+                fontWeight: 600,
+              }}
+            >
+              {clamp(event.organizers.name, 38)}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignSelf: "flex-start",
+                marginTop: 16,
+                padding: "16px 32px",
+                borderRadius: 999,
+                background: BRAND,
+                color: "#FFFFFF",
+                fontSize: 30,
+                fontWeight: 800,
+              }}
+            >
+              {label}
+            </div>
           </div>
         </div>
       </div>

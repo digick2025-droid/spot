@@ -35,8 +35,8 @@ export default async function DiscoverPage({
   );
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-      <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight">
+    <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-6">
+      <h1 className="font-display text-[30px] font-extrabold uppercase">
         {t("discover")}
       </h1>
 
@@ -61,7 +61,7 @@ export default async function DiscoverPage({
       </p>
 
       {events.length === 0 ? (
-        <div className="mt-6 rounded-[20px] border border-white/10 bg-card p-8 text-center">
+        <div className="sheen mt-6 rounded-sheet bg-surface p-8 text-center">
           <p className="text-[15px] font-semibold">
             {isFiltered ? t("noResults") : t("empty")}
           </p>
@@ -70,7 +70,7 @@ export default async function DiscoverPage({
           )}
         </div>
       ) : (
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           {events.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
