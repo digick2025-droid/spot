@@ -22,7 +22,7 @@ export async function EventCard({ event }: { event: EventSummary }) {
       {/* L'affiche, quand elle existe ; sinon le dégradé et l'emoji, qui
           restent le repli de toutes les fiches créées sans image. */}
       <div
-        className="relative flex h-28 items-center justify-center overflow-hidden text-4xl"
+        className="relative flex aspect-square items-center justify-center overflow-hidden text-4xl"
         style={{ background: event.gradient ?? FALLBACK_GRADIENT }}
         aria-hidden
       >

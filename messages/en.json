@@ -338,7 +338,7 @@
       "tierQuantityTooLow": "Quantity can't go below the tickets already sold."
     },
     "posterLabel": "Poster",
-    "posterHint": "JPEG, PNG or WebP, 5 MB maximum. Optional: without a poster, the emoji and gradient take over.",
+    "posterHint": "JPEG, PNG or WebP, 5 MB maximum, square format recommended. Optional: without a poster, the emoji and gradient take over.",
     "posterPick": "Choose an image",
     "posterReplace": "Change image",
     "posterUploading": "Uploading…",

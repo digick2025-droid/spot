@@ -71,7 +71,7 @@ export default async function EventPage({
 
       {/* L'affiche téléversée par l'organisateur, à défaut le dégradé. */}
       <div
-        className="relative mt-4 flex h-40 items-center justify-center overflow-hidden rounded-[20px] text-6xl sm:h-56"
+        className="relative mt-4 flex aspect-square items-center justify-center overflow-hidden rounded-[20px] text-6xl"
         style={{ background: event.gradient ?? FALLBACK_GRADIENT }}
         aria-hidden
       >
