@@ -290,3 +290,223 @@ export async function createEvent(
   const locale = await getLocale();
   return redirect({ href: "/organisateur", locale });
 }
+
+/**
+ * Met à jour un événement et ses paliers de billets.
+ *
+ * Le slug, le dégradé et le statut ne bougent pas ici : le premier est
+ * l'URL publique déjà partagée, les deux autres n'ont pas leur place dans
+ * ce formulaire. Un palier déjà vendu ne peut ni disparaître ni voir sa
+ * quantité descendre sous ses ventes — la contrainte
+ * ticket_types_not_oversold le refuserait de toute façon, mais la
+ * vérifier ici donne un message clair plutôt qu'une erreur Postgres.
+ */
+export async function updateEvent(
+  eventId: string,
+  _state: OrganizerFormState,
+  formData: FormData
+): Promise<OrganizerFormState> {
+  const t = await getTranslations("organizer");
+  await requireProfile();
+
+  const organizer = await getMyOrganizer();
+  if (!organizer) return { error: t("errors.noOrganizer") };
+
+  const parsed = eventSchema.safeParse({
+    title: formData.get("title"),
+    description: formData.get("description") ?? undefined,
+    date: formData.get("date"),
+    time: formData.get("time"),
+    city: formData.get("city"),
+    venue: formData.get("venue"),
+    category: formData.get("category") ?? undefined,
+    glyph: formData.get("glyph") ?? undefined,
+  });
+  if (!parsed.success) return { error: t("errors.invalidEvent") };
+
+  const time = parsed.data.time.slice(0, 5);
+  const startsAt = new Date(`${parsed.data.date}T${time}:00+01:00`);
+  if (Number.isNaN(startsAt.getTime())) return { error: t("errors.invalidDate") };
+  if (startsAt.getTime() <= Date.now()) return { error: t("errors.pastDate") };
+
+  const supabase = await createClient();
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("events")
+    .select("id, ticket_types ( id, sort, quantity_sold )")
+    .eq("id", eventId)
+    .eq("organizer_id", organizer.id)
+    .maybeSingle();
+  if (fetchError || !existing) return { error: t("errors.eventNotFound") };
+
+  const existingTiers = new Map(
+    existing.ticket_types.map((tier) => [
+      tier.sort as number,
+      { id: tier.id as string, quantity_sold: tier.quantity_sold as number },
+    ])
+  );
+
+  const upserts: {
+    sort: number;
+    data: z.infer<typeof tierSchema>;
+    existingId?: string;
+  }[] = [];
+  const deletions: string[] = [];
+
+  for (const i of [0, 1, 2]) {
+    const name = `${formData.get(`tierName${i}`) ?? ""}`.trim();
+    const current = existingTiers.get(i);
+
+    if (name === "") {
+      if (current) {
+        if (current.quantity_sold > 0) return { error: t("errors.tierHasSales") };
+        deletions.push(current.id);
+      }
+      continue;
+    }
+
+    const tier = tierSchema.safeParse({
+      name,
+      price: formData.get(`tierPrice${i}`),
+      quantity: formData.get(`tierQuantity${i}`),
+    });
+    if (!tier.success) return { error: t("errors.invalidTiers") };
+    if (current && tier.data.quantity < current.quantity_sold) {
+      return { error: t("errors.tierQuantityTooLow") };
+    }
+    upserts.push({ sort: i, data: tier.data, existingId: current?.id });
+  }
+  if (upserts.length === 0) return { error: t("errors.invalidTiers") };
+
+  const submittedPath = `${formData.get("posterPath") ?? ""}`.trim();
+  if (submittedPath && !isOwnPosterPath(submittedPath, organizer.id)) {
+    return { error: t("errors.invalidPoster") };
+  }
+
+  const description = parsed.data.description || null;
+
+  const { error } = await supabase
+    .from("events")
+    .update({
+      category_key: parsed.data.category || null,
+      title: parsed.data.title,
+      description_fr: description,
+      description_en: description,
+      city: parsed.data.city,
+      venue: parsed.data.venue,
+      starts_at: startsAt.toISOString(),
+      glyph: parsed.data.glyph || "🎟",
+      poster_path: submittedPath || null,
+    })
+    .eq("id", eventId)
+    .eq("organizer_id", organizer.id);
+
+  if (error) {
+    console.error("[organisateur] mise à jour de l'événement échouée", error);
+    return { error: t("errors.unavailable") };
+  }
+
+  if (deletions.length > 0) {
+    const { error: deleteError } = await supabase
+      .from("ticket_types")
+      .delete()
+      .in("id", deletions);
+    if (deleteError) {
+      console.error("[organisateur] retrait d'un palier échoué", deleteError);
+      return { error: t("errors.unavailable") };
+    }
+  }
+
+  for (const { sort, data, existingId } of upserts) {
+    if (existingId) {
+      const { error: tierError } = await supabase
+        .from("ticket_types")
+        .update({
+          name_fr: data.name,
+          name_en: data.name,
+          price_xaf: data.price,
+          quantity_total: data.quantity,
+        })
+        .eq("id", existingId);
+      if (tierError) {
+        console.error("[organisateur] mise à jour d'un palier échouée", tierError);
+        return { error: t("errors.unavailable") };
+      }
+    } else {
+      const { error: tierError } = await supabase.from("ticket_types").insert({
+        event_id: eventId,
+        name_fr: data.name,
+        name_en: data.name,
+        price_xaf: data.price,
+        quantity_total: data.quantity,
+        sort,
+      });
+      if (tierError) {
+        console.error("[organisateur] ajout d'un palier échoué", tierError);
+        return { error: t("errors.unavailable") };
+      }
+    }
+  }
+
+  const locale = await getLocale();
+  return redirect({ href: "/organisateur", locale });
+}
+
+/**
+ * Retire un événement, ou le bascule sur « annulé » s'il a déjà des
+ * commandes.
+ *
+ * orders.event_id est en `on delete restrict` : un événement avec ne
+ * serait-ce qu'une commande abandonnée ne peut pas être supprimé en base.
+ * On vérifie donc d'abord plutôt que de laisser Postgres refuser — et
+ * l'annulation protège au passage les acheteurs qui ont déjà payé.
+ */
+export async function deleteEvent(
+  eventId: string,
+  _state: OrganizerFormState,
+  _formData: FormData
+): Promise<OrganizerFormState> {
+  const t = await getTranslations("organizer");
+  await requireProfile();
+
+  const organizer = await getMyOrganizer();
+  if (!organizer) return { error: t("errors.noOrganizer") };
+
+  const supabase = await createClient();
+
+  const { count, error: countError } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", eventId);
+  if (countError) {
+    console.error("[organisateur] vérification des commandes échouée", countError);
+    return { error: t("errors.unavailable") };
+  }
+
+  if (count && count > 0) {
+    const { error } = await supabase
+      .from("events")
+      .update({ status: "cancelled" })
+      .eq("id", eventId)
+      .eq("organizer_id", organizer.id);
+    if (error) {
+      console.error("[organisateur] annulation de l'événement échouée", error);
+      return { error: t("errors.unavailable") };
+    }
+    const locale = await getLocale();
+    return redirect({ href: "/organisateur", locale });
+  }
+
+  const { error } = await supabase
+    .from("events")
+    .delete()
+    .eq("id", eventId)
+    .eq("organizer_id", organizer.id);
+  if (error) {
+    console.error("[organisateur] suppression de l'événement échouée", error);
+    return { error: t("errors.unavailable") };
+  }
+
+  const locale = await getLocale();
+  return redirect({ href: "/organisateur", locale });
+}

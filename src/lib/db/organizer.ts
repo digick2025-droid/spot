@@ -120,3 +120,101 @@ export async function getOrganizerDashboard(): Promise<OrganizerDashboard | null
     revenue_xaf: events.reduce((n, e) => n + e.revenue_xaf, 0),
   };
 }
+
+export type MyEventTier = {
+  id: string;
+  name: string;
+  price_xaf: number;
+  quantity_total: number;
+  quantity_sold: number;
+  sort: number;
+};
+
+export type MyEventDetail = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  city: string;
+  venue: string;
+  starts_at: string;
+  category_key: string | null;
+  glyph: string | null;
+  poster_path: string | null;
+  status: MyEvent["status"];
+  tiers: MyEventTier[];
+};
+
+type EventDetailRow = {
+  id: string;
+  slug: string;
+  title: string;
+  description_fr: string | null;
+  city: string;
+  venue: string;
+  starts_at: string;
+  category_key: string | null;
+  glyph: string | null;
+  poster_path: string | null;
+  status: MyEvent["status"];
+  ticket_types: {
+    id: string;
+    name_fr: string;
+    price_xaf: number;
+    quantity_total: number;
+    quantity_sold: number;
+    sort: number;
+  }[];
+};
+
+/**
+ * Un événement de l'organisateur courant, prêt pour le formulaire d'édition.
+ *
+ * La RLS (events_select_own) borne déjà la lecture à ses propres
+ * événements ; le filtre organizer_id explicite garde la requête juste
+ * si elle change un jour d'exécutant.
+ */
+export async function getMyEvent(id: string): Promise<MyEventDetail | null> {
+  const organizer = await getMyOrganizer();
+  if (!organizer) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select(
+      "id, slug, title, description_fr, city, venue, starts_at, category_key, glyph, poster_path, status, ticket_types ( id, name_fr, price_xaf, quantity_total, quantity_sold, sort )"
+    )
+    .eq("id", id)
+    .eq("organizer_id", organizer.id)
+    .maybeSingle()
+    .overrideTypes<EventDetailRow | null, { merge: false }>();
+
+  if (error) throw new Error(`Lecture de l'événement impossible : ${error.message}`);
+  if (!data) return null;
+
+  const tiers = [...data.ticket_types]
+    .sort((a, b) => a.sort - b.sort)
+    .map((tier) => ({
+      id: tier.id,
+      name: tier.name_fr,
+      price_xaf: tier.price_xaf,
+      quantity_total: tier.quantity_total,
+      quantity_sold: tier.quantity_sold,
+      sort: tier.sort,
+    }));
+
+  return {
+    id: data.id,
+    slug: data.slug,
+    title: data.title,
+    description: data.description_fr,
+    city: data.city,
+    venue: data.venue,
+    starts_at: data.starts_at,
+    category_key: data.category_key,
+    glyph: data.glyph,
+    poster_path: data.poster_path,
+    status: data.status,
+    tiers,
+  };
+}

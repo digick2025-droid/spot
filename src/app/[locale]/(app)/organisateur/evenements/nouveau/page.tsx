@@ -5,6 +5,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { requireProfile } from "@/lib/auth/dal";
 import { listCategories } from "@/lib/db/events";
 import { getMyOrganizer } from "@/lib/db/organizer";
+import { createEvent } from "@/lib/db/organizer-actions";
 import { EventForm } from "./event-form";
 
 export default async function NewEventPage({
@@ -52,6 +53,10 @@ export default async function NewEventPage({
               activeLocale === "fr" ? category.label_fr : category.label_en
             }`,
           }))}
+          action={createEvent}
+          submitLabel={t("publish")}
+          submittingLabel={t("publishing")}
+          hint={t("publishHint")}
         />
       </div>
     </main>

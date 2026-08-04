@@ -313,6 +313,15 @@
     "publish": "Publier l'événement",
     "publishing": "Publication…",
     "publishHint": "L'événement devient visible de tous dès la publication.",
+    "editEventTitle": "Modifier l'événement",
+    "editLink": "Modifier",
+    "save": "Enregistrer les modifications",
+    "saving": "Enregistrement…",
+    "editHint": "La quantité d'un billet ne peut pas descendre sous le nombre déjà vendu.",
+    "deleteEvent": "Supprimer l'événement",
+    "deleting": "Suppression…",
+    "deleteConfirm": "Supprimer « {title} » ? Cette action est définitive.",
+    "deleteHint": "Sans billet vendu, l'événement est supprimé. Sinon, il passe à « Annulé ».",
     "backToDashboard": "Retour au tableau de bord",
     "errors": {
       "invalidOrganizer": "Nom invalide : entre 2 et 80 caractères.",
@@ -323,7 +332,10 @@
       "noOrganizer": "Crée d'abord ta fiche organisateur.",
       "unavailable": "Publication impossible pour le moment. Réessaie dans un instant.",
       "invalidPoster": "Affiche refusée : une image JPEG, PNG ou WebP de 5 Mo maximum.",
-      "posterUpload": "Le dépôt de l'affiche a échoué. Réessaie, ou publie sans affiche."
+      "posterUpload": "Le dépôt de l'affiche a échoué. Réessaie, ou publie sans affiche.",
+      "eventNotFound": "Cet événement est introuvable.",
+      "tierHasSales": "Ce palier a déjà des billets vendus, il ne peut pas être retiré.",
+      "tierQuantityTooLow": "La quantité ne peut pas descendre sous le nombre de billets déjà vendus."
     },
     "posterLabel": "Affiche",
     "posterHint": "JPEG, PNG ou WebP, 5 Mo maximum. Facultative : sans affiche, l'emoji et le dégradé prennent le relais.",

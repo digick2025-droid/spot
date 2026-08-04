@@ -313,6 +313,15 @@
     "publish": "Publish event",
     "publishing": "Publishing…",
     "publishHint": "The event becomes visible to everyone as soon as it is published.",
+    "editEventTitle": "Edit event",
+    "editLink": "Edit",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "editHint": "A ticket's quantity can't go below the number already sold.",
+    "deleteEvent": "Delete event",
+    "deleting": "Deleting…",
+    "deleteConfirm": "Delete \"{title}\"? This cannot be undone.",
+    "deleteHint": "With no tickets sold, the event is deleted. Otherwise, it's marked \"Cancelled\".",
     "backToDashboard": "Back to dashboard",
     "errors": {
       "invalidOrganizer": "Invalid name: between 2 and 80 characters.",
@@ -323,7 +332,10 @@
       "noOrganizer": "Create your organizer profile first.",
       "unavailable": "Cannot publish right now. Try again in a moment.",
       "invalidPoster": "Poster refused: a JPEG, PNG or WebP image of 5 MB maximum.",
-      "posterUpload": "Uploading the poster failed. Try again, or publish without one."
+      "posterUpload": "Uploading the poster failed. Try again, or publish without one.",
+      "eventNotFound": "This event could not be found.",
+      "tierHasSales": "This tier already has sold tickets and can't be removed.",
+      "tierQuantityTooLow": "Quantity can't go below the tickets already sold."
     },
     "posterLabel": "Poster",
     "posterHint": "JPEG, PNG or WebP, 5 MB maximum. Optional: without a poster, the emoji and gradient take over.",

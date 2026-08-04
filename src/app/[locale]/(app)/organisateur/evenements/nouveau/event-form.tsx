@@ -2,12 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
+import { createPosterUpload, discardPoster } from "@/lib/db/organizer-actions";
 import {
-  createEvent,
-  createPosterUpload,
-  discardPoster,
-} from "@/lib/db/organizer-actions";
-import { initialOrganizerFormState } from "@/lib/db/organizer-state";
+  initialOrganizerFormState,
+  type OrganizerFormState,
+} from "@/lib/db/organizer-state";
 import { createClient } from "@/lib/supabase/client";
 import {
   POSTER_BUCKET,
@@ -75,17 +74,39 @@ type PosterState =
 
 export function EventForm({
   categories,
+  action,
+  initialValues,
+  initialPoster,
+  submitLabel,
+  submittingLabel,
+  hint,
 }: {
   categories: { key: string; label: string }[];
+  action: (
+    state: OrganizerFormState,
+    formData: FormData
+  ) => Promise<OrganizerFormState>;
+  initialValues?: Partial<Values>;
+  initialPoster?: { path: string; url: string } | null;
+  submitLabel: string;
+  submittingLabel: string;
+  hint: string;
 }) {
   const t = useTranslations("organizer");
-  const [state, action, pending] = useActionState(
-    createEvent,
+  const [state, formAction, pending] = useActionState(
+    action,
     initialOrganizerFormState
   );
 
-  const [values, setValues] = useState<Values>(INITIAL_VALUES);
-  const [poster, setPoster] = useState<PosterState>({ status: "empty" });
+  const [values, setValues] = useState<Values>(() => ({
+    ...INITIAL_VALUES,
+    ...initialValues,
+  }) as Values);
+  const [poster, setPoster] = useState<PosterState>(
+    initialPoster
+      ? { status: "ready", preview: initialPoster.url, path: initialPoster.path }
+      : { status: "empty" }
+  );
 
   const set =
     (key: string) =>
@@ -160,7 +181,7 @@ export function EventForm({
   };
 
   return (
-    <form action={action} className="mt-6 flex flex-col gap-5">
+    <form action={formAction} className="mt-6 flex flex-col gap-5">
       {poster.status === "ready" && (
         <input type="hidden" name="posterPath" value={poster.path} />
       )}
@@ -289,7 +310,7 @@ export function EventForm({
         </span>
       </label>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-2">
           <span className={LABEL}>{t("dateLabel")}</span>
           <input
@@ -346,7 +367,7 @@ export function EventForm({
 
         <div className="mt-3 flex flex-col gap-2.5">
           {TIERS.map((index) => (
-            <div key={index} className="grid grid-cols-3 gap-2.5">
+            <div key={index} className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
               <input
                 name={`tierName${index}`}
                 maxLength={40}
@@ -401,9 +422,9 @@ export function EventForm({
         disabled={pending || poster.status === "uploading"}
         className="rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
       >
-        {pending ? t("publishing") : t("publish")}
+        {pending ? submittingLabel : submitLabel}
       </button>
-      <p className="text-center text-[12px] text-smoke">{t("publishHint")}</p>
+      <p className="text-center text-[12px] text-smoke">{hint}</p>
     </form>
   );
 }

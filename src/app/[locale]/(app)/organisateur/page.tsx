@@ -134,48 +134,51 @@ export default async function OrganizerDashboardPage({
         ) : (
           <ul className="mt-4 overflow-hidden rounded-[18px] border border-fog bg-paper-card">
             {events.map((event) => (
-              <li
-                key={event.id}
-                className="grid grid-cols-2 items-center gap-3 border-b border-fog/70 p-4 last:border-b-0 sm:grid-cols-[2.2fr_1fr_1.4fr_1fr_0.9fr] sm:gap-4"
-              >
-                <span className="col-span-2 truncate text-[13px] font-bold sm:col-span-1">
-                  <span aria-hidden>{event.glyph ?? "🎟"}</span> {event.title}
-                </span>
-
-                <span className="text-[12px] text-smoke">
-                  {formatEventDate(event.starts_at, activeLocale)}
-                </span>
-
-                <div>
-                  <div className="text-[12px]">
-                    {t("soldOf", { sold: event.sold, capacity: event.capacity })}
-                  </div>
-                  <div
-                    aria-hidden
-                    className="mt-1 h-[5px] overflow-hidden rounded-full bg-fog"
-                  >
-                    <div
-                      className="h-full rounded-full bg-brand"
-                      style={{
-                        width: `${
-                          event.capacity > 0
-                            ? Math.round((event.sold / event.capacity) * 100)
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <span className="text-[13px] font-bold">
-                  {formatPriceXaf(event.revenue_xaf)}
-                </span>
-
-                <span
-                  className={`text-[11px] font-bold ${STATUS_STYLE[event.status]}`}
+              <li key={event.id} className="border-b border-fog/70 last:border-b-0">
+                <Link
+                  href={`/organisateur/evenements/${event.id}`}
+                  title={t("editLink")}
+                  className="grid grid-cols-2 items-center gap-3 p-4 transition hover:bg-paper sm:grid-cols-[2.2fr_1fr_1.4fr_1fr_0.9fr] sm:gap-4"
                 >
-                  {t(STATUS_KEY[event.status])}
-                </span>
+                  <span className="col-span-2 truncate text-[13px] font-bold sm:col-span-1">
+                    <span aria-hidden>{event.glyph ?? "🎟"}</span> {event.title}
+                  </span>
+
+                  <span className="text-[12px] text-smoke">
+                    {formatEventDate(event.starts_at, activeLocale)}
+                  </span>
+
+                  <div>
+                    <div className="text-[12px]">
+                      {t("soldOf", { sold: event.sold, capacity: event.capacity })}
+                    </div>
+                    <div
+                      aria-hidden
+                      className="mt-1 h-[5px] overflow-hidden rounded-full bg-fog"
+                    >
+                      <div
+                        className="h-full rounded-full bg-brand"
+                        style={{
+                          width: `${
+                            event.capacity > 0
+                              ? Math.round((event.sold / event.capacity) * 100)
+                              : 0
+                          }%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <span className="text-[13px] font-bold">
+                    {formatPriceXaf(event.revenue_xaf)}
+                  </span>
+
+                  <span
+                    className={`text-[11px] font-bold ${STATUS_STYLE[event.status]}`}
+                  >
+                    {t(STATUS_KEY[event.status])}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
