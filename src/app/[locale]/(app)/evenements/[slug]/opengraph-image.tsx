@@ -40,6 +40,28 @@ function clamp(value: string, max: number): string {
   return value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
 }
 
+/**
+ * Les deux teintes d'un dégradé d'événement, en rgba.
+ *
+ * Le halo se peint en `radial-gradient`, qui réclame une couleur et non
+ * la chaîne complète du dégradé. Faute de teinte lisible — un dégradé
+ * exprimé autrement qu'en hexadécimal — on retombe sur l'orange de la
+ * marque, jamais sur du transparent qui effacerait le halo.
+ */
+function haloColors(gradient: string): [string, string] {
+  const found = gradient.match(/#[0-9a-f]{6}/gi) ?? [];
+  const first = found[0] ?? BRAND;
+  const second = found[1] ?? first;
+  return [first, second];
+}
+
+function rgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 /** Le logo SP●T, dessiné plutôt qu'écrit — la police n'a pas ce point. */
 function Wordmark({ size: fontSize, dot }: { size: number; dot: string }) {
   return (
@@ -128,6 +150,7 @@ export default async function EventOpengraphImage({
 
   const poster = await fetchPoster(posterUrl(event.poster_path));
   const gradient = event.gradient ?? FALLBACK_GRADIENT;
+  const [haloA, haloB] = haloColors(gradient);
   const from = lowestPrice(event);
   const label =
     activeLocale === "fr"
@@ -147,12 +170,14 @@ export default async function EventOpengraphImage({
           height: "100%",
           display: "flex",
           alignItems: "center",
-          background: gradient,
+          background: INK,
           padding: 64,
         }}
       >
-        {/* Le voile : dense à gauche, où vit le texte ; transparent à
-            droite, où la couleur de l'événement doit continuer de vivre. */}
+        {/* Le halo, comme dans l'application : la couleur de l'événement
+            rayonne autour de l'affiche et dans le coin opposé, jamais
+            sous le texte — qui reste ainsi blanc sur noir, lisible même
+            réduit à la vignette d'une conversation WhatsApp. */}
         <div
           style={{
             position: "absolute",
@@ -161,8 +186,18 @@ export default async function EventOpengraphImage({
             width: size.width,
             height: size.height,
             display: "flex",
-            background:
-              "linear-gradient(105deg, rgba(8,8,11,0.97) 0%, rgba(8,8,11,0.93) 46%, rgba(8,8,11,0.72) 78%, rgba(8,8,11,0.48) 100%)",
+            background: `radial-gradient(circle at 24% 48%, ${rgba(haloA, 0.5)} 0%, ${rgba(haloA, 0)} 55%)`,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: size.width,
+            height: size.height,
+            display: "flex",
+            background: `radial-gradient(circle at 96% 96%, ${rgba(haloB, 0.42)} 0%, ${rgba(haloB, 0)} 48%)`,
           }}
         />
 

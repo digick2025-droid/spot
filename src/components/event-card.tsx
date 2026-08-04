@@ -30,10 +30,12 @@ export async function EventCard({ event }: { event: EventSummary }) {
       className="press group relative flex flex-col"
     >
       {/* Le halo vit hors de la carte : celle-ci masque son débordement
-          pour arrondir l'affiche, et l'y enfermer le découperait net. */}
+          pour arrondir l'affiche, et l'y enfermer le découperait net.
+          Il reste allumé en permanence — sur un téléphone il n'y a pas
+          de survol, et c'est justement là qu'il doit se voir. */}
       <span
         aria-hidden
-        className="halo inset-x-2 top-3 h-1/2 opacity-0 transition-opacity duration-500 group-hover:opacity-55"
+        className="halo inset-x-2 top-3 h-1/2 opacity-35 transition-opacity duration-500 group-hover:opacity-60"
         style={{ "--halo": gradient } as React.CSSProperties}
       />
 
@@ -71,16 +73,14 @@ export async function EventCard({ event }: { event: EventSummary }) {
             {event.city} · {event.venue}
           </p>
 
-          <div className="mt-auto flex items-baseline justify-between gap-2 pt-3">
-            <span className="text-[13px] font-bold">
-              {Number.isFinite(from)
-                ? t("fromPrice", { price: formatPriceXaf(from) })
-                : t("freeEntry")}
-            </span>
-            <span className="truncate text-[11px] text-smoke">
-              {event.organizers.name}
-            </span>
-          </div>
+          {/* Le prix seul en pied de carte : à deux colonnes sur un
+              téléphone, y ajouter l'organisateur tronquait les deux. Il
+              tient sa place sur la fiche, où il a le rôle de l'artiste. */}
+          <span className="mt-auto pt-3 text-[13px] font-bold">
+            {Number.isFinite(from)
+              ? t("fromPrice", { price: formatPriceXaf(from) })
+              : t("freeEntry")}
+          </span>
         </div>
       </div>
     </Link>

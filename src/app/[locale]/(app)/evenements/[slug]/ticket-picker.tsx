@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { AddIcon, RemoveIcon } from "@/components/icons";
 import {
   MAX_TICKETS_PER_ORDER,
   MIN_TICKETS_PER_ORDER,
@@ -57,17 +58,17 @@ export function TicketPicker({
             disabled={soldOut}
             onClick={() => select(option)}
             aria-pressed={active}
-            className={`flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+            className={`press flex items-center justify-between rounded-card px-4 py-3.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               active
-                ? "border-brand bg-brand/10"
-                : "border-white/10 bg-card hover:border-brand/40"
+                ? "bg-surface-high ring-2 ring-brand"
+                : "bg-surface ring-1 ring-white/10 hover:ring-brand/40"
             }`}
           >
             <span className="flex items-center gap-3">
               <span
                 aria-hidden
-                className={`h-4 w-4 shrink-0 rounded-full border-2 ${
-                  active ? "border-brand bg-brand" : "border-white/30"
+                className={`h-4 w-4 shrink-0 rounded-full ${
+                  active ? "grad-ember" : "ring-2 ring-inset ring-white/30"
                 }`}
               />
               <span>
@@ -88,36 +89,38 @@ export function TicketPicker({
 
       {selected && (
         <>
-          <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-card px-4 py-3">
+          <div className="flex items-center justify-between rounded-card bg-surface px-4 py-3 ring-1 ring-white/10">
             <span className="text-[14px] font-semibold">{t("quantity")}</span>
             <span className="flex items-center gap-4">
               <button
                 type="button"
-                onClick={() => setQuantity((q) => Math.max(MIN_TICKETS_PER_ORDER, q - 1))}
+                onClick={() =>
+                  setQuantity((q) => Math.max(MIN_TICKETS_PER_ORDER, q - 1))
+                }
                 disabled={quantity <= MIN_TICKETS_PER_ORDER}
-                aria-label="−"
-                className="h-8 w-8 rounded-full border border-white/15 text-lg leading-none disabled:opacity-40"
+                aria-label={t("quantity")}
+                className="press flex h-9 w-9 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/15 disabled:opacity-40"
               >
-                −
+                <RemoveIcon size={16} strokeWidth={2.5} aria-hidden />
               </button>
-              <span className="w-6 text-center font-display text-[16px] font-extrabold">
+              <span className="font-display w-6 text-center text-[17px] font-extrabold">
                 {quantity}
               </span>
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
                 disabled={quantity >= maxQuantity}
-                aria-label="+"
-                className="h-8 w-8 rounded-full border border-white/15 text-lg leading-none disabled:opacity-40"
+                aria-label={t("quantity")}
+                className="press flex h-9 w-9 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/15 disabled:opacity-40"
               >
-                +
+                <AddIcon size={16} strokeWidth={2.5} aria-hidden />
               </button>
             </span>
           </div>
 
           <div className="flex items-center justify-between px-1">
             <span className="text-[14px] text-mist">{t("total")}</span>
-            <span className="font-display text-2xl font-extrabold text-brand">
+            <span className="text-ember font-display text-[26px] font-extrabold">
               {formatPriceXaf(total)}
             </span>
           </div>
@@ -127,7 +130,7 @@ export function TicketPicker({
       {!isSignedIn ? (
         <Link
           href="/connexion"
-          className="rounded-2xl bg-brand px-4 py-3.5 text-center font-display text-[15px] font-extrabold text-white hover:opacity-90"
+          className="press grad-ember glow-brand font-display rounded-2xl px-4 py-4 text-center text-[15px] font-extrabold text-white"
         >
           {t("signInToBuy")}
         </Link>
@@ -138,7 +141,7 @@ export function TicketPicker({
           <button
             type="submit"
             disabled={!selected}
-            className="w-full rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+            className="press grad-ember glow-brand font-display w-full rounded-2xl px-4 py-4 text-[15px] font-extrabold text-white disabled:opacity-50"
           >
             {t("buy")}
           </button>

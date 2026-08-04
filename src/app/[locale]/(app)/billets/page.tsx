@@ -2,6 +2,8 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { TicketIcon } from "@/components/icons";
+import { Sticker } from "@/components/sticker";
 import { requireProfile } from "@/lib/auth/dal";
 import { listMyTickets } from "@/lib/db/tickets";
 import { formatEventDate } from "@/lib/format";
@@ -25,8 +27,8 @@ export default async function MyTicketsPage({
   const tickets = await listMyTickets();
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-      <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight">
+    <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-6">
+      <h1 className="font-display text-[30px] font-extrabold uppercase">
         {t("title")}
       </h1>
 
@@ -35,11 +37,11 @@ export default async function MyTicketsPage({
           <div className="text-4xl" aria-hidden>
             🎟
           </div>
-          <p className="mt-4 text-[15px] font-semibold">{t("empty")}</p>
+          <p className="mt-5 text-[15px] font-semibold">{t("empty")}</p>
           <p className="mt-2 text-[13px] text-mist">{t("emptyHint")}</p>
           <Link
             href="/decouvrir"
-            className="mt-5 inline-block rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
+            className="press grad-ember glow-brand font-display mt-6 inline-block rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white"
           >
             {t("browse")}
           </Link>
@@ -50,7 +52,7 @@ export default async function MyTicketsPage({
             <li key={ticket.id}>
               <Link
                 href={`/billets/${ticket.id}`}
-                className="flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-4 transition-colors hover:border-brand/50"
+                className="press sheen flex items-center gap-4 rounded-card bg-surface p-3.5 transition-colors hover:bg-surface-high"
               >
                 <span
                   aria-hidden
@@ -76,7 +78,7 @@ export default async function MyTicketsPage({
                 </span>
 
                 <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${
                     ticket.status === "valid"
                       ? "bg-success/15 text-success"
                       : ticket.status === "used"

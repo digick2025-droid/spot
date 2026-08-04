@@ -30,7 +30,7 @@ export function OtpForm() {
             autoFocus
             placeholder={t("codePlaceholder")}
             aria-describedby={state.error ? "auth-error" : undefined}
-            className="rounded-2xl border border-white/10 bg-card px-4 py-3.5 text-center font-display text-2xl font-extrabold tracking-[0.4em] text-white placeholder:tracking-[0.3em] placeholder:text-smoke focus:border-brand focus:outline-none"
+            className="font-display rounded-2xl bg-surface px-4 py-4 text-center text-2xl font-extrabold tracking-[0.4em] text-white ring-1 ring-white/10 placeholder:tracking-[0.3em] placeholder:text-smoke focus:ring-2 focus:ring-brand"
           />
         </label>
       ) : (
@@ -47,7 +47,7 @@ export function OtpForm() {
             defaultValue={state.email}
             placeholder={t("emailPlaceholder")}
             aria-describedby={state.error ? "auth-error" : undefined}
-            className="rounded-2xl border border-white/10 bg-card px-4 py-3.5 text-[15px] text-white placeholder:text-smoke focus:border-brand focus:outline-none"
+            className="rounded-2xl bg-surface px-4 py-4 text-[15px] text-white ring-1 ring-white/10 placeholder:text-smoke focus:ring-2 focus:ring-brand"
           />
         </label>
       )}
@@ -56,7 +56,7 @@ export function OtpForm() {
         <p
           id="auth-error"
           role="alert"
-          className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-[13px] text-danger"
+          className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] text-danger ring-1 ring-danger/40"
         >
           {state.error}
         </p>
@@ -65,7 +65,7 @@ export function OtpForm() {
       {state.notice && !state.error && (
         <p
           role="status"
-          className="rounded-xl border border-success/40 bg-success/10 px-4 py-3 text-[13px] text-success"
+          className="rounded-xl bg-success/10 px-4 py-3 text-[13px] text-success ring-1 ring-success/40"
         >
           {state.notice}
         </p>
@@ -76,7 +76,7 @@ export function OtpForm() {
         name="intent"
         value={onCodeStep ? "verify" : "request"}
         disabled={pending}
-        className="rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="press grad-ember glow-brand font-display rounded-2xl px-4 py-4 text-[15px] font-extrabold text-white disabled:opacity-50"
       >
         {pending
           ? onCodeStep
@@ -94,7 +94,7 @@ export function OtpForm() {
             name="intent"
             value="resend"
             disabled={pending}
-            className="font-semibold text-brand hover:underline disabled:opacity-50"
+            className="font-bold text-brand-bright hover:underline disabled:opacity-50"
           >
             {t("resend")}
           </button>

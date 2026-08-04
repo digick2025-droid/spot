@@ -33,11 +33,11 @@ export default async function ConnexionPage({
       />
 
       <div className="relative w-full max-w-sm">
-        <div className="font-display text-2xl font-extrabold tracking-tight">
+        <div className="font-display text-2xl font-extrabold">
           SP<span className="spot-dot mx-0.5" aria-hidden />T
         </div>
 
-        <h1 className="font-display mt-8 text-3xl font-extrabold uppercase tracking-tight">
+        <h1 className="font-display mt-8 text-[32px] font-extrabold uppercase">
           {t("title")}
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-mist">

@@ -30,6 +30,7 @@ export {
   Heart as FollowIcon,
   Users as AudienceIcon,
   Plus as AddIcon,
+  Minus as RemoveIcon,
   Pencil as EditIcon,
   Trash2 as DeleteIcon,
   Check as DoneIcon,
