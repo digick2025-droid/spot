@@ -32,6 +32,22 @@ export function posterExtension(mimeType: string): string | null {
   }
 }
 
+const POSTER_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/i;
+
+/**
+ * Le chemin annoncé par le formulaire est-il bien une affiche déposée
+ * par cet organisateur ?
+ *
+ * Le fichier étant téléversé depuis le navigateur, c'est le client qui
+ * nomme le chemin : le serveur ne le recopie donc pas sans le vérifier.
+ * Storage refuse déjà toute écriture hors du dossier de l'organisateur,
+ * mais rien n'empêcherait sinon d'inscrire dans son propre événement le
+ * chemin d'une affiche appartenant à quelqu'un d'autre.
+ */
+export function isOwnPosterPath(path: string, organizerId: string): boolean {
+  return POSTER_PATH.test(path) && path.startsWith(`${organizerId}/`);
+}
+
 /**
  * URL publique d'une affiche, ou null si l'événement n'en a pas.
  *

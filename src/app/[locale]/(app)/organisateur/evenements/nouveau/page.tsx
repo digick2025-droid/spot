@@ -24,7 +24,7 @@ export default async function NewEventPage({
   // le tableau de bord propose la création, c'est là qu'on renvoie.
   const organizer = await getMyOrganizer();
   if (!organizer) {
-    redirect({ href: "/organisateur", locale: activeLocale });
+    return redirect({ href: "/organisateur", locale: activeLocale });
   }
 
   const t = await getTranslations("organizer");

@@ -326,7 +326,12 @@
       "posterUpload": "Uploading the poster failed. Try again, or publish without one."
     },
     "posterLabel": "Poster",
-    "posterHint": "JPEG, PNG or WebP, 5 MB maximum. Optional: without a poster, the emoji and gradient take over."
+    "posterHint": "JPEG, PNG or WebP, 5 MB maximum. Optional: without a poster, the emoji and gradient take over.",
+    "posterPick": "Choose an image",
+    "posterReplace": "Change image",
+    "posterUploading": "Uploading…",
+    "posterReady": "Poster uploaded ✓",
+    "posterRemove": "Remove"
   },
   "affiliation": {
     "newCampaign": "New campaign",

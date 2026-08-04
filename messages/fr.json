@@ -326,7 +326,12 @@
       "posterUpload": "Le dépôt de l'affiche a échoué. Réessaie, ou publie sans affiche."
     },
     "posterLabel": "Affiche",
-    "posterHint": "JPEG, PNG ou WebP, 5 Mo maximum. Facultative : sans affiche, l'emoji et le dégradé prennent le relais."
+    "posterHint": "JPEG, PNG ou WebP, 5 Mo maximum. Facultative : sans affiche, l'emoji et le dégradé prennent le relais.",
+    "posterPick": "Choisir une image",
+    "posterReplace": "Changer d'image",
+    "posterUploading": "Import en cours…",
+    "posterReady": "Affiche importée ✓",
+    "posterRemove": "Retirer"
   },
   "affiliation": {
     "newCampaign": "Nouvelle campagne",
