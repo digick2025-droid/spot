@@ -82,18 +82,15 @@ export default async function AdminPage({
   ] as const;
 
   return (
-    <main className="flex-1 bg-paper text-ink">
-      <div className="mx-auto w-full max-w-5xl px-6 py-8">
+    <main className="theme-paper flex-1 bg-paper text-ink">
+      <div className="mx-auto w-full max-w-5xl px-5 pb-10 pt-6 sm:px-6">
         <h1 className="font-display text-[22px] font-extrabold uppercase">
           {t("title")}
         </h1>
 
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {cards.map((card) => (
-            <div
-              key={card.key}
-              className="rounded-[18px] border border-fog bg-paper-card p-4"
-            >
+            <div key={card.key} className="sheet rounded-card p-4">
               <div className="text-[12px] text-smoke">{t(card.key)}</div>
               <div className="font-display mt-2 text-[22px] font-extrabold">
                 {card.value}
@@ -102,9 +99,12 @@ export default async function AdminPage({
           ))}
         </div>
 
+        {/* Les onglets défilent latéralement plutôt que de passer à la
+            ligne : sept pastilles empilées mangeraient l'écran avant le
+            tableau, qui est ce qu'on vient lire. */}
         <nav
           aria-label={t("title")}
-          className="mt-6 flex flex-wrap items-center gap-1.5"
+          className="-mx-5 mt-6 flex items-center gap-1.5 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
         >
           {ADMIN_TABS.map((key) => {
             const active = key === tab;
@@ -113,10 +113,10 @@ export default async function AdminPage({
                 key={key}
                 href={{ pathname: "/admin", query: { onglet: key } }}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-full border px-4 py-2 text-[12px] font-semibold ${
+                className={`press shrink-0 rounded-full px-4 py-2 text-[12px] font-semibold ${
                   active
-                    ? "border-brand bg-brand text-white"
-                    : "border-fog text-smoke hover:border-brand hover:text-brand"
+                    ? "grad-ember glow-brand text-white"
+                    : "border border-paper-line bg-paper-card text-smoke hover:border-brand hover:text-brand"
                 }`}
               >
                 {t(TAB_LABEL[key])}
@@ -125,8 +125,8 @@ export default async function AdminPage({
           })}
         </nav>
 
-        <div className="mt-4 overflow-hidden rounded-[18px] border border-fog bg-paper-card">
-          <div className="grid grid-cols-[1.6fr_1.3fr_1fr_1fr] gap-2.5 border-b border-fog px-4 py-3 text-[11px] font-bold uppercase tracking-[1px] text-smoke">
+        <div className="sheet mt-4 overflow-hidden rounded-card">
+          <div className="grid grid-cols-[1.6fr_1.3fr_1fr_1fr] gap-2.5 border-b border-paper-line bg-paper/60 px-4 py-3 text-[11px] font-bold uppercase tracking-[1px] text-smoke">
             {table.cols.map((col, index) => (
               <span key={index}>{col}</span>
             ))}
@@ -140,12 +140,14 @@ export default async function AdminPage({
             table.rows.map((row) => (
               <div
                 key={row.key}
-                className="grid grid-cols-[1.6fr_1.3fr_1fr_1fr] items-center gap-2.5 border-b border-fog/70 px-4 py-3.5 text-[13px] last:border-b-0"
+                className="grid grid-cols-[1.6fr_1.3fr_1fr_1fr] items-center gap-2.5 border-b border-paper-line px-4 py-3.5 text-[13px] last:border-b-0"
               >
                 <span className="truncate font-bold">{row.a}</span>
                 <span className="truncate text-smoke">{row.b}</span>
                 <span>{row.c}</span>
-                <span className={`text-[11px] font-bold ${row.tone}`}>{row.d}</span>
+                <span className={`text-[11px] font-bold ${row.tone}`}>
+                  {row.d}
+                </span>
               </div>
             ))
           )}

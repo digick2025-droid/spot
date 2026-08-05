@@ -39,7 +39,7 @@ export function DeleteEventButton({
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-2xl border border-danger/40 px-4 py-3.5 font-display text-[15px] font-extrabold text-danger hover:bg-danger/10 disabled:opacity-50"
+        className="press font-display w-full rounded-2xl border border-danger/40 px-4 py-3.5 text-[15px] font-extrabold text-danger hover:bg-danger/10 disabled:opacity-60"
       >
         {pending ? pendingLabel : label}
       </button>

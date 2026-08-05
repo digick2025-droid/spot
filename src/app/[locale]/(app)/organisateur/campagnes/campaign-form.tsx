@@ -6,7 +6,7 @@ import { createCampaign } from "@/lib/db/affiliation-actions";
 import { initialAffiliationFormState } from "@/lib/db/affiliation-state";
 
 const FIELD =
-  "rounded-2xl border border-fog bg-paper-card px-4 py-3 text-[15px] text-ink placeholder:text-smoke focus:border-brand focus:outline-none";
+  "rounded-2xl border border-paper-line bg-paper-card px-4 py-3 text-[15px] text-ink shadow-[0_1px_2px_rgb(16_16_24/0.04)] placeholder:text-smoke focus:border-brand focus:outline-none";
 
 const LABEL = "text-[13px] font-semibold text-smoke";
 
@@ -101,7 +101,7 @@ export function CampaignForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+        className="press grad-ember glow-brand font-display rounded-2xl px-4 py-3.5 text-[15px] font-extrabold text-white disabled:opacity-60"
       >
         {pending ? t("creating") : t("create")}
       </button>

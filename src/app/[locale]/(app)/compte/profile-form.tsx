@@ -6,7 +6,7 @@ import { updateProfile } from "@/lib/auth/profile-actions";
 import { initialProfileState } from "@/lib/auth/profile-state";
 
 const FIELD =
-  "rounded-2xl border border-white/10 bg-card px-4 py-3.5 text-[15px] text-white placeholder:text-smoke focus:border-brand focus:outline-none";
+  "rounded-2xl bg-surface px-4 py-3.5 text-[15px] text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand";
 
 const LABEL = "text-[13px] font-semibold text-fog";
 
@@ -63,7 +63,7 @@ export function ProfileForm({
           {(["fr", "en"] as const).map((value) => (
             <label
               key={value}
-              className="flex flex-1 cursor-pointer items-center gap-2.5 rounded-2xl border border-white/10 bg-card px-4 py-3 text-[14px] font-semibold has-checked:border-brand has-checked:bg-brand/10"
+              className="press flex flex-1 cursor-pointer items-center gap-2.5 rounded-2xl bg-surface px-4 py-3 text-[14px] font-semibold ring-1 ring-inset ring-white/10 has-checked:bg-brand/10 has-checked:ring-brand"
             >
               <input
                 type="radio"
@@ -81,7 +81,7 @@ export function ProfileForm({
       {state.error && (
         <p
           role="alert"
-          className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-[13px] text-danger"
+          className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] text-danger ring-1 ring-inset ring-danger/40"
         >
           {state.error}
         </p>
@@ -90,7 +90,7 @@ export function ProfileForm({
       {state.notice && (
         <p
           role="status"
-          className="rounded-xl border border-success/40 bg-success/10 px-4 py-3 text-[13px] text-success"
+          className="rounded-xl bg-success/10 px-4 py-3 text-[13px] text-success ring-1 ring-inset ring-success/40"
         >
           {state.notice}
         </p>
@@ -99,7 +99,7 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+        className="press grad-ember glow-brand font-display rounded-2xl px-4 py-3.5 text-[15px] font-extrabold text-white disabled:opacity-60"
       >
         {pending ? t("saving") : t("save")}
       </button>

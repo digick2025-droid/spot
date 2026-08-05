@@ -2,6 +2,7 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { BackIcon } from "@/components/icons";
 import { requireProfile } from "@/lib/auth/dal";
 import { listCategories } from "@/lib/db/events";
 import { getMyOrganizer } from "@/lib/db/organizer";
@@ -33,13 +34,14 @@ export default async function NewEventPage({
   const categories = await listCategories();
 
   return (
-    <main className="flex-1 bg-paper text-ink">
-      <div className="mx-auto w-full max-w-3xl px-6 py-8">
+    <main className="theme-paper flex-1 bg-paper text-ink">
+      <div className="mx-auto w-full max-w-3xl px-5 pb-10 pt-6 sm:px-6">
         <Link
           href="/organisateur"
-          className="text-[13px] font-semibold text-smoke hover:text-ink"
+          className="press inline-flex items-center gap-1.5 text-[13px] font-semibold text-smoke hover:text-ink"
         >
-          ← {t("backToDashboard")}
+          <BackIcon size={16} strokeWidth={2.2} aria-hidden />
+          {t("backToDashboard")}
         </Link>
 
         <h1 className="font-display mt-4 text-2xl font-extrabold">

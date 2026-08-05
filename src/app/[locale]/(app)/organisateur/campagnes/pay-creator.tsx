@@ -40,7 +40,7 @@ export function PayCreatorForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-full bg-accent px-4 py-2 font-display text-[12px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+        className="press grad-night font-display rounded-full px-4 py-2.5 text-[12px] font-extrabold text-white shadow-[0_8px_20px_-10px_rgb(139_92_246/0.9)] disabled:opacity-60"
       >
         {pending
           ? t("paying")

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
+import { PosterIcon } from "@/components/icons";
 import { createPosterUpload, discardPoster } from "@/lib/db/organizer-actions";
 import {
   initialOrganizerFormState,
@@ -19,7 +20,7 @@ import {
 const TIERS = [0, 1, 2] as const;
 
 const FIELD =
-  "rounded-2xl border border-fog bg-paper-card px-4 py-3 text-[15px] text-ink placeholder:text-smoke focus:border-brand focus:outline-none";
+  "rounded-2xl border border-paper-line bg-paper-card px-4 py-3 text-[15px] text-ink shadow-[0_1px_2px_rgb(16_16_24/0.04)] placeholder:text-smoke focus:border-brand focus:outline-none";
 
 const LABEL = "text-[13px] font-semibold text-smoke";
 
@@ -234,7 +235,7 @@ export function EventForm({
       <div className="flex flex-col gap-2">
         <span className={LABEL}>{t("posterLabel")}</span>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-fog bg-paper-card p-3">
+        <div className="sheet flex items-center gap-4 rounded-2xl p-3">
           {poster.status === "uploading" || poster.status === "ready" ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -247,14 +248,14 @@ export function EventForm({
           ) : (
             <span
               aria-hidden
-              className="grid h-20 w-20 shrink-0 place-items-center rounded-xl bg-paper text-[26px]"
+              className="grid h-20 w-20 shrink-0 place-items-center rounded-xl bg-paper text-smoke"
             >
-              🖼
+              <PosterIcon size={26} strokeWidth={1.8} />
             </span>
           )}
 
           <div className="min-w-0 flex-1">
-            <label className="inline-flex cursor-pointer items-center rounded-full bg-ink px-4 py-2 font-display text-[13px] font-extrabold text-white hover:opacity-90">
+            <label className="press font-display inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-[13px] font-extrabold text-white">
               {poster.status === "ready" ? t("posterReplace") : t("posterPick")}
               <input
                 type="file"
@@ -420,7 +421,7 @@ export function EventForm({
       <button
         type="submit"
         disabled={pending || poster.status === "uploading"}
-        className="rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+        className="press grad-ember glow-brand font-display rounded-2xl px-4 py-4 text-[15px] font-extrabold text-white disabled:opacity-60"
       >
         {pending ? submittingLabel : submitLabel}
       </button>

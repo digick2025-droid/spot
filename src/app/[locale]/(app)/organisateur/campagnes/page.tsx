@@ -15,6 +15,7 @@ import { setCampaignStatus } from "@/lib/db/affiliation-actions";
 import { payoutFailureLabel } from "@/lib/db/payout-state";
 import { simulatePayoutWebhook } from "@/lib/payments/dev-actions";
 import { formatPriceXaf } from "@/lib/format";
+import { AddIcon, BackIcon } from "@/components/icons";
 import { CopyButton } from "@/components/copy-button";
 import { CampaignForm } from "./campaign-form";
 import { PayCreatorForm } from "./pay-creator";
@@ -28,7 +29,7 @@ const STATUS_KEY: Record<CampaignStatus, string> = {
 const STATUS_STYLE: Record<CampaignStatus, string> = {
   active: "bg-brand/10 text-brand",
   paused: "bg-warning/10 text-warning",
-  ended: "bg-fog text-smoke",
+  ended: "bg-paper-line text-smoke",
 };
 
 const PAYOUT_KEY: Record<PayoutStatus, string> = {
@@ -80,8 +81,8 @@ export default async function CampaignsPage({
   // bord sait proposer la création, cette page n'a pas à la dupliquer.
   if (!dashboard || !campaigns) {
     return (
-      <main className="flex-1 bg-paper text-ink">
-        <div className="mx-auto w-full max-w-3xl px-6 py-8">
+      <main className="theme-paper flex-1 bg-paper text-ink">
+        <div className="mx-auto w-full max-w-3xl px-5 pb-10 pt-6 sm:px-6">
           <h1 className="font-display text-2xl font-extrabold">
             {tApp("campaigns")}
           </h1>
@@ -90,7 +91,7 @@ export default async function CampaignsPage({
           </p>
           <Link
             href="/organisateur"
-            className="mt-5 inline-block rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
+            className="press grad-ember glow-brand font-display mt-5 inline-block rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white"
           >
             {tOrganizer("openSpace")}
           </Link>
@@ -105,13 +106,14 @@ export default async function CampaignsPage({
   const prefix = activeLocale === routing.defaultLocale ? "" : `/${activeLocale}`;
 
   return (
-    <main className="flex-1 bg-paper text-ink">
-      <div className="mx-auto w-full max-w-4xl px-6 py-8">
+    <main className="theme-paper flex-1 bg-paper text-ink">
+      <div className="mx-auto w-full max-w-4xl px-5 pb-10 pt-6 sm:px-6">
         <Link
           href="/organisateur"
-          className="text-[13px] font-semibold text-smoke hover:text-ink"
+          className="press inline-flex items-center gap-1.5 text-[13px] font-semibold text-smoke hover:text-ink"
         >
-          ← {tOrganizer("backToDashboard")}
+          <BackIcon size={16} strokeWidth={2.2} aria-hidden />
+          {tOrganizer("backToDashboard")}
         </Link>
 
         <h1 className="font-display mt-4 text-2xl font-extrabold">
@@ -122,8 +124,8 @@ export default async function CampaignsPage({
         </p>
 
         {/* ── Ouverture d'une campagne ────────────────────────────── */}
-        <section className="mt-6 rounded-[18px] border border-fog bg-paper-card p-6">
-          <h2 className="font-display text-[15px] font-extrabold">
+        <section className="sheet mt-6 rounded-card p-6">
+          <h2 className="font-display text-[17px] font-extrabold">
             {t("newCampaign")}
           </h2>
 
@@ -132,9 +134,10 @@ export default async function CampaignsPage({
               <p className="mt-2 text-[13px] text-smoke">{t("noEventsHint")}</p>
               <Link
                 href="/organisateur/evenements/nouveau"
-                className="mt-4 inline-block rounded-full bg-brand px-4 py-2 font-display text-[13px] font-extrabold text-white hover:opacity-90"
+                className="press grad-ember glow-brand font-display mt-4 inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-extrabold text-white"
               >
-                + {tApp("createEvent")}
+                <AddIcon size={15} strokeWidth={2.6} aria-hidden />
+                {tApp("createEvent")}
               </Link>
             </>
           ) : (
@@ -144,7 +147,7 @@ export default async function CampaignsPage({
 
         {/* ── Campagnes ouvertes ──────────────────────────────────── */}
         {campaigns.length === 0 ? (
-          <div className="mt-6 rounded-[18px] border border-fog bg-paper-card p-8 text-center">
+          <div className="sheet mt-6 rounded-card p-8 text-center">
             <p className="text-[15px] font-semibold">{t("noCampaigns")}</p>
             <p className="mt-2 text-[13px] text-smoke">{t("noCampaignsHint")}</p>
           </div>
@@ -181,10 +184,10 @@ async function CampaignCard({
       : t("ruleFixed", { value: campaign.commissionValue });
 
   return (
-    <article className="rounded-[18px] border border-fog bg-paper-card p-6">
+    <article className="sheet rounded-card p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="truncate text-[15px] font-bold">
+          <h3 className="font-display truncate text-[15px] font-extrabold">
             <span aria-hidden>{campaign.event.glyph ?? "🎟"}</span>{" "}
             {campaign.event.title}
           </h3>
@@ -316,18 +319,18 @@ async function CampaignCard({
 
       <h4 className="mt-5 text-[12px] text-smoke">{t("inviteLabel")}</h4>
       <div className="mt-2 flex gap-2">
-        <code className="min-w-0 flex-1 truncate rounded-full border border-dashed border-fog bg-paper px-4 py-3 text-[12px] text-brand">
+        <code className="min-w-0 flex-1 truncate rounded-full border border-paper-line bg-paper px-4 py-3 text-[12px] text-brand">
           {inviteUrl}
         </code>
         <CopyButton
           value={inviteUrl}
-          className="shrink-0 rounded-full border border-fog px-4 text-[12px] font-bold hover:border-brand hover:text-brand"
+          className="press shrink-0 rounded-full border border-paper-line px-4 text-[12px] font-bold hover:border-brand hover:text-brand"
         />
       </div>
       <p className="mt-2 text-[12px] text-smoke">{t("inviteHint")}</p>
 
       {campaign.status !== "ended" && (
-        <div className="mt-5 flex flex-wrap gap-2 border-t border-fog pt-4">
+        <div className="mt-5 flex flex-wrap gap-2 border-t border-paper-line pt-4">
           <StatusButton
             campaignId={campaign.id}
             status={campaign.status === "active" ? "paused" : "active"}
@@ -382,7 +385,7 @@ function StatusButton({
       <input type="hidden" name="status" value={status} />
       <button
         type="submit"
-        className="rounded-full border border-fog px-4 py-2 text-[12px] font-bold hover:border-brand hover:text-brand"
+        className="press rounded-full border border-paper-line bg-paper-card px-4 py-2 text-[12px] font-bold hover:border-brand hover:text-brand"
       >
         {label}
       </button>

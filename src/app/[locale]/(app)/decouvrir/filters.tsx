@@ -36,11 +36,13 @@ export async function DiscoverFilters({
     return qs ? `/decouvrir?${qs}` : "/decouvrir";
   };
 
+  // La puce active porte la braise ; les autres restent des surfaces, pour
+  // qu'on repère le filtre en cours sans lire toute la ligne.
   const chipClass = (active: boolean) =>
-    `whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
+    `press whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors ${
       active
-        ? "bg-brand text-white"
-        : "border border-white/10 bg-card text-mist hover:border-brand/40"
+        ? "grad-ember glow-brand text-white"
+        : "bg-surface text-mist ring-1 ring-inset ring-white/10 hover:text-white"
     }`;
 
   return (
@@ -58,11 +60,11 @@ export async function DiscoverFilters({
           defaultValue={query}
           placeholder={t("searchPlaceholder")}
           aria-label={t("search")}
-          className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-card px-4 py-3 text-[14px] text-white placeholder:text-smoke focus:border-brand focus:outline-none"
+          className="min-w-0 flex-1 rounded-2xl bg-surface px-4 py-3 text-[14px] text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand"
         />
         <button
           type="submit"
-          className="rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
+          className="press grad-ember glow-brand font-display rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white"
         >
           {t("search")}
         </button>

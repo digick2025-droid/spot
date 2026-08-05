@@ -40,6 +40,9 @@
   /* ── Thème clair (Organisateur / Admin) ──────────────────────── */
   --color-paper: #f6f6f8;
   --color-paper-card: #ffffff;
+  /* La ligne du thème clair : assez visible pour séparer deux lignes de
+     tableau, assez discrète pour ne pas quadriller l'écran. */
+  --color-paper-line: #e6e6ec;
 
   /* ── États ───────────────────────────────────────────────────── */
   --color-success: #22c55e;
@@ -205,6 +208,21 @@ body {
   filter: blur(56px);
   opacity: 0.45;
   pointer-events: none;
+}
+
+/**
+ * La feuille de l'espace organisateur.
+ *
+ * Sur fond clair, la profondeur ne vient pas d'un liseré lumineux comme
+ * dans le noir, mais d'une ombre courte posée sous une ligne discrète :
+ * c'est du papier posé sur du papier. Le pendant clair de `sheen`.
+ */
+@utility sheet {
+  background-color: var(--color-paper-card);
+  border: 1px solid var(--color-paper-line);
+  box-shadow:
+    0 1px 2px rgb(16 16 24 / 0.04),
+    0 10px 26px -18px rgb(16 16 24 / 0.22);
 }
 
 /** Lueur portée sous un élément de marque (bouton principal, pastille). */

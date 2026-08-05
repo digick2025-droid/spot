@@ -19,6 +19,7 @@ export type MyEvent = {
   starts_at: string;
   status: "draft" | "published" | "cancelled" | "ended";
   glyph: string | null;
+  gradient: string | null;
   sold: number;
   capacity: number;
   revenue_xaf: number;
@@ -62,6 +63,7 @@ type EventRow = {
   starts_at: string;
   status: MyEvent["status"];
   glyph: string | null;
+  gradient: string | null;
   ticket_types: { price_xaf: number; quantity_total: number; quantity_sold: number }[];
 };
 
@@ -84,7 +86,7 @@ export async function getOrganizerDashboard(): Promise<OrganizerDashboard | null
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, slug, title, starts_at, status, glyph, ticket_types ( price_xaf, quantity_total, quantity_sold )"
+      "id, slug, title, starts_at, status, glyph, gradient, ticket_types ( price_xaf, quantity_total, quantity_sold )"
     )
     .eq("organizer_id", organizer.id)
     .order("starts_at", { ascending: false })
@@ -106,6 +108,7 @@ export async function getOrganizerDashboard(): Promise<OrganizerDashboard | null
       starts_at: event.starts_at,
       status: event.status,
       glyph: event.glyph,
+      gradient: event.gradient,
       sold,
       capacity,
       revenue_xaf: revenue,

@@ -26,7 +26,7 @@ export function OrganizerSetup({ defaultName }: { defaultName: string }) {
           maxLength={80}
           defaultValue={defaultName}
           placeholder={t("namePlaceholder")}
-          className="rounded-2xl border border-fog bg-paper-card px-4 py-3.5 text-[15px] text-ink placeholder:text-smoke focus:border-brand focus:outline-none"
+          className="rounded-2xl border border-paper-line bg-paper-card px-4 py-3.5 text-[15px] text-ink shadow-[0_1px_2px_rgb(16_16_24/0.04)] placeholder:text-smoke focus:border-brand focus:outline-none"
         />
       </label>
 
@@ -39,7 +39,7 @@ export function OrganizerSetup({ defaultName }: { defaultName: string }) {
           maxLength={4}
           defaultValue="🎪"
           aria-describedby="glyph-hint"
-          className="w-24 rounded-2xl border border-fog bg-paper-card px-4 py-3.5 text-center text-[20px] focus:border-brand focus:outline-none"
+          className="w-24 rounded-2xl border border-paper-line bg-paper-card px-4 py-3.5 text-center text-[20px] shadow-[0_1px_2px_rgb(16_16_24/0.04)] focus:border-brand focus:outline-none"
         />
         <span id="glyph-hint" className="text-[12px] text-smoke">
           {t("glyphHint")}
@@ -58,7 +58,7 @@ export function OrganizerSetup({ defaultName }: { defaultName: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+        className="press grad-ember glow-brand font-display rounded-2xl px-4 py-3.5 text-[15px] font-extrabold text-white disabled:opacity-60"
       >
         {pending ? t("creating") : t("createOrganizer")}
       </button>
