@@ -104,12 +104,12 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-[18px] border border-white/10 bg-card px-[1.4rem] py-[1.35rem] transition-[border-color,transform] hover:-translate-y-0.5 hover:border-white/20 ${className}`}
+      className={`sheen rounded-card bg-surface px-[1.4rem] py-[1.35rem] transition-transform hover:-translate-y-0.5 ${className}`}
     >
       {label && (
         <span
           className={`font-display mb-[0.7rem] block text-[0.72rem] font-extrabold tracking-[0.1em] ${
-            tone === "accent" ? "text-accent" : "text-brand"
+            tone === "accent" ? "text-accent" : "text-brand-bright"
           }`}
         >
           {label}
@@ -136,12 +136,12 @@ export function Steps({
       {items.map((item, index) => (
         <li
           key={item.title}
-          className="flex items-start gap-[1.1rem] rounded-2xl border border-white/10 bg-card px-[1.3rem] py-[1.15rem]"
+          className="sheen flex items-start gap-[1.1rem] rounded-card bg-surface px-[1.3rem] py-[1.15rem]"
         >
           <span
             aria-hidden
             className={`font-display flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full text-[0.82rem] font-extrabold text-white ${
-              tone === "accent" ? "bg-accent" : "bg-brand"
+              tone === "accent" ? "grad-night" : "grad-ember"
             }`}
           >
             {index + 1}
@@ -180,10 +180,10 @@ export function Ticket({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[22px] border shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)] ${
+      className={`relative overflow-hidden rounded-sheet shadow-[0_24px_60px_-28px_rgba(0,0,0,0.9)] ${
         light
-          ? "border-black/10 bg-paper-card text-ink"
-          : "border-white/10 bg-card"
+          ? "border border-paper-line bg-paper-card text-ink"
+          : "sheen bg-surface"
       }`}
     >
       <div className="px-[1.7rem] pb-[1.45rem] pt-[1.6rem]">{children}</div>
@@ -222,10 +222,10 @@ export function ctaClassName(
     "inline-flex items-center gap-2 rounded-full px-6 py-3.5 font-display text-[0.9rem] font-extrabold transition-[transform,box-shadow,border-color,color] hover:-translate-y-0.5";
 
   if (variant === "brand") {
-    return `${base} border border-transparent bg-brand text-white shadow-[0_10px_30px_-12px_rgba(255,107,53,0.55)]`;
+    return `${base} grad-ember glow-brand border border-transparent text-white`;
   }
   if (variant === "accent") {
-    return `${base} border border-transparent bg-accent text-white`;
+    return `${base} grad-night border border-transparent text-white shadow-[0_10px_30px_-12px_rgba(139,92,246,0.65)]`;
   }
   if (variant === "ghostLight") {
     return `${base} border border-black/15 text-ink hover:border-brand hover:text-brand-deep`;

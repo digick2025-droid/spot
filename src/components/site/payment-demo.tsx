@@ -109,7 +109,7 @@ export function PaymentDemo() {
               key={op.name}
               type="button"
               onClick={() => pay(op.name)}
-              className="mb-2 flex w-full items-center gap-2.5 rounded-2xl border border-white/10 bg-card px-[0.95rem] py-3 text-left text-[0.87rem] font-semibold transition-[border-color,transform] hover:translate-x-0.5 hover:border-brand"
+              className="mb-2 flex w-full items-center gap-2.5 rounded-2xl bg-surface px-[0.95rem] py-3 text-left text-[0.87rem] font-semibold ring-1 ring-inset ring-white/10 transition-transform hover:translate-x-0.5 hover:ring-brand"
             >
               <span
                 aria-hidden

@@ -39,22 +39,22 @@ export async function SiteFooter() {
             </h2>
             <ul className="grid gap-2">
               <li>
-                <Link href="/decouvrir" className="hover:text-brand">
+                <Link href="/decouvrir" className="hover:text-brand-bright">
                   {t("discover")}
                 </Link>
               </li>
               <li>
-                <Link href="/organisateurs" className="hover:text-brand">
+                <Link href="/organisateurs" className="hover:text-brand-bright">
                   {t("organizers")}
                 </Link>
               </li>
               <li>
-                <Link href="/creators" className="hover:text-brand">
+                <Link href="/creators" className="hover:text-brand-bright">
                   {t("creators")}
                 </Link>
               </li>
               <li>
-                <Link href="/pass" className="hover:text-brand">
+                <Link href="/pass" className="hover:text-brand-bright">
                   {t("pass")}
                 </Link>
               </li>

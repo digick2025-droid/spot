@@ -23,7 +23,7 @@ export function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-ink/90 py-[0.85rem] backdrop-blur-md sm:py-[1.1rem]">
+    <header className="glass sticky top-0 z-50 border-b py-[0.85rem] sm:py-[1.1rem]">
       <div className="mx-auto flex w-[min(1080px,100%-2.5rem)] flex-wrap items-center justify-between gap-4">
         <Link
           href="/"
@@ -46,8 +46,10 @@ export function SiteHeader() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[13.5px] font-semibold transition-colors ${
-                  active ? "bg-card text-white" : "text-mist hover:text-white"
+                className={`press whitespace-nowrap rounded-full px-3 py-1.5 text-[13.5px] font-semibold transition-colors ${
+                  active
+                    ? "bg-surface-high text-white"
+                    : "text-mist hover:text-white"
                 }`}
               >
                 {link.label}
@@ -58,7 +60,7 @@ export function SiteHeader() {
 
         <Link
           href="/accueil"
-          className="font-display rounded-full bg-brand px-[1.1rem] py-2.5 text-[0.82rem] font-extrabold text-white"
+          className="press grad-ember glow-brand font-display rounded-full px-[1.1rem] py-2.5 text-[0.82rem] font-extrabold text-white"
         >
           {t("open")}
         </Link>

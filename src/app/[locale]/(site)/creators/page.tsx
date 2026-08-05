@@ -110,8 +110,8 @@ export default async function LandingCreatorsPage({
               <p className="mt-2 text-[0.93rem] text-mist">{t("rule1Body")}</p>
             </div>
 
-            <div className="rounded-[20px] border border-white/10 bg-card p-[1.6rem]">
-              <h3 className="font-display text-[1.0625rem] font-extrabold tracking-tight text-brand">
+            <div className="sheen rounded-sheet bg-surface p-[1.6rem]">
+              <h3 className="font-display text-[1.0625rem] font-extrabold tracking-tight text-brand-bright">
                 {t("rule2Title")}
               </h3>
               <p className="mt-2 text-[0.93rem] text-mist">{t("rule2Body")}</p>

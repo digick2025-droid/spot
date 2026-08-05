@@ -216,7 +216,7 @@ export default async function LandingHomePage({
                     <Link
                       key={event.id}
                       href={`/evenements/${event.slug}`}
-                      className="flex items-center gap-4 rounded-2xl border border-white/10 bg-card px-[1.1rem] py-4 transition-[border-color,transform] hover:-translate-y-0.5 hover:border-brand"
+                      className="press sheen flex items-center gap-4 rounded-card bg-surface px-[1.1rem] py-4 transition-transform hover:-translate-y-0.5"
                     >
                       <span
                         aria-hidden
@@ -235,7 +235,7 @@ export default async function LandingHomePage({
                           {event.venue} · {event.city}
                         </span>
                       </span>
-                      <span className="font-display shrink-0 text-right text-[0.88rem] font-extrabold tabular-nums text-brand">
+                      <span className="font-display shrink-0 text-right text-[0.88rem] font-extrabold tabular-nums text-brand-bright">
                         {Number.isFinite(from)
                           ? from.toLocaleString("fr-FR")
                           : "—"}
@@ -270,10 +270,10 @@ export default async function LandingHomePage({
             <p className="mb-3 pl-0.5 text-[0.7rem] uppercase tracking-[0.14em] text-smoke">
               {t("mockLabel")}
             </p>
-            <div className="flex items-center gap-3.5 rounded-2xl border border-brand/40 bg-gradient-to-br from-brand/15 to-card px-[1.15rem] py-[1.05rem]">
+            <div className="flex items-center gap-3.5 rounded-card bg-gradient-to-br from-brand/15 to-surface px-[1.15rem] py-[1.05rem] ring-1 ring-inset ring-brand/40">
               <span
                 aria-hidden
-                className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl bg-brand text-[1.1rem]"
+                className="grad-ember grid h-[38px] w-[38px] shrink-0 place-items-center rounded-xl text-[1.1rem]"
               >
                 🎟
               </span>
