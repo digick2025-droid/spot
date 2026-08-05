@@ -1,8 +1,8 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { AppHeader } from "@/components/app-header";
-import { BottomNav } from "@/components/bottom-nav";
-import { getOwnedOrganizers, getUser } from "@/lib/auth/dal";
+import { BottomNav, type NavAudience } from "@/components/bottom-nav";
+import { getOwnedOrganizers, getUser, isCreator } from "@/lib/auth/dal";
 import { getUnreadNotificationCount } from "@/lib/db/notifications";
 
 /**
@@ -21,12 +21,23 @@ export default async function AppLayout({
 }) {
   // Sert uniquement à décider des onglets affichés : les pages et les
   // Server Actions revérifient les droits pour leur propre compte.
-  const [user, ownedOrganizers, allMessages] = await Promise.all([
+  const [user, ownedOrganizers, creator, allMessages] = await Promise.all([
     getUser(),
     getOwnedOrganizers(),
+    isCreator(),
     getMessages(),
   ]);
   const unreadCount = user ? await getUnreadNotificationCount() : 0;
+
+  // Qui tient une maison la tient d'abord : un organisateur est souvent
+  // creator aussi, et c'est son espace qu'il ouvre en premier.
+  const audience: NavAudience = !user
+    ? "guest"
+    : ownedOrganizers.length > 0
+      ? "organizer"
+      : creator
+        ? "creator"
+        : "participant";
 
   const messages = Object.fromEntries(
     Object.entries(allMessages).filter(([namespace]) => namespace !== "landing")
@@ -34,12 +45,13 @@ export default async function AppLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <AppHeader isSignedIn={user !== null} unreadCount={unreadCount} />
-      {children}
-      <BottomNav
-        canScan={ownedOrganizers.length > 0}
+      <AppHeader
         isSignedIn={user !== null}
+        unreadCount={unreadCount}
+        audience={audience}
       />
+      {children}
+      <BottomNav audience={audience} />
     </NextIntlClientProvider>
   );
 }

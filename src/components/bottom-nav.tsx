@@ -4,13 +4,17 @@ import type { LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import {
+  CampaignIcon,
   ExploreIcon,
   HomeIcon,
+  OrganizerIcon,
   PassIcon,
   ProfileIcon,
-  ScanIcon,
   TicketIcon,
 } from "./icons";
+
+/** Ce que la personne est venue faire ici — pas un droit, un usage. */
+export type NavAudience = "guest" | "participant" | "creator" | "organizer";
 
 type Tab = {
   key: string;
@@ -18,12 +22,12 @@ type Tab = {
   Icon: LucideIcon;
   label: string;
   isActive: (pathname: string) => boolean;
-  /** L'onglet mis en avant au centre de la barre (maquette : SPOT PASS). */
+  /** L'onglet mis en avant au centre de la barre. */
   isCenter?: boolean;
 };
 
 /**
- * Barre d'onglets du participant.
+ * Barre d'onglets.
  *
  * Elle flotte au-dessus du fond plutôt que de le barrer : posée en
  * `sticky`, elle réserve malgré tout sa hauteur dans le flux, si bien
@@ -33,24 +37,24 @@ type Tab = {
  * `usePathname` de next-intl renvoie le chemin SANS préfixe de locale, ce
  * qui garde les comparaisons identiques en FR et en EN.
  *
- * L'onglet Scanner n'est affiché qu'aux propriétaires d'un organisateur —
- * c'est du confort d'affichage, pas une autorisation : `/scan` vérifie
- * lui-même les droits, un layout ne se rejouant pas à chaque navigation.
+ * **Cinq onglets au maximum, et c'est le centre qui change de métier.**
+ * Un participant y trouve son SPOT PASS, un creator ses campagnes, un
+ * organisateur son espace. Le reste des destinations ne disparaît pas :
+ * elles vivent dans le profil, qui est la porte de tout ce qui n'est pas
+ * quotidien. Au-delà de cinq, les libellés se tronquent sur un écran de
+ * 375 px et la barre ne se lit plus.
  *
- * Même logique pour le SPOT PASS, à l'emplacement central : il n'a de sens
- * qu'une fois connecté, et `/pass` exige de toute façon une session.
+ * Rien ici n'autorise quoi que ce soit : `/scan`, `/creator` et
+ * `/organisateur` vérifient les droits pour leur propre compte — un
+ * layout ne se rejoue pas à chaque navigation.
  */
-export function BottomNav({
-  canScan,
-  isSignedIn,
-}: {
-  canScan: boolean;
-  isSignedIn: boolean;
-}) {
+export function BottomNav({ audience }: { audience: NavAudience }) {
   const t = useTranslations("app");
   const tAuth = useTranslations("auth");
   const tNav = useTranslations("nav");
   const pathname = usePathname();
+
+  const signedIn = audience !== "guest";
 
   const tabs: Tab[] = [
     {
@@ -61,7 +65,7 @@ export function BottomNav({
       isActive: (p) => p === "/accueil",
     },
     {
-      key: "discover",
+      key: "events",
       href: "/decouvrir",
       Icon: ExploreIcon,
       label: t("explore"),
@@ -69,7 +73,26 @@ export function BottomNav({
     },
   ];
 
-  if (isSignedIn) {
+  // Le centre : ce que cette personne-là vient faire le plus souvent.
+  if (audience === "organizer") {
+    tabs.push({
+      key: "organizer",
+      href: "/organisateur",
+      Icon: OrganizerIcon,
+      label: t("mySpace"),
+      isActive: (p) => p.startsWith("/organisateur") || p.startsWith("/scan"),
+      isCenter: true,
+    });
+  } else if (audience === "creator") {
+    tabs.push({
+      key: "creator",
+      href: "/creator",
+      Icon: CampaignIcon,
+      label: t("creatorTab"),
+      isActive: (p) => p.startsWith("/creator"),
+      isCenter: true,
+    });
+  } else if (audience === "participant") {
     tabs.push({
       key: "pass",
       href: "/pass",
@@ -88,18 +111,8 @@ export function BottomNav({
     isActive: (p) => p.startsWith("/billets"),
   });
 
-  if (canScan) {
-    tabs.push({
-      key: "scan",
-      href: "/scan",
-      Icon: ScanIcon,
-      label: t("scanner"),
-      isActive: (p) => p.startsWith("/scan"),
-    });
-  }
-
   tabs.push(
-    isSignedIn
+    signedIn
       ? {
           key: "profile",
           href: "/compte",
@@ -132,11 +145,11 @@ export function BottomNav({
                 key={tab.key}
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className="press flex flex-1 flex-col items-center justify-center gap-1 rounded-[20px] py-1.5"
+                className="press group flex flex-1 flex-col items-center justify-center gap-1 rounded-[20px] py-1.5"
               >
                 <span
                   aria-hidden
-                  className={`grad-ember flex h-9 w-9 items-center justify-center rounded-full text-white ${
+                  className={`grad-ember flex h-9 w-9 items-center justify-center rounded-full text-white transition-transform duration-300 group-hover:scale-105 ${
                     active ? "glow-brand" : ""
                   }`}
                 >
@@ -174,7 +187,7 @@ export function BottomNav({
               <Icon
                 size={21}
                 strokeWidth={active ? 2.4 : 1.9}
-                className="relative"
+                className="relative transition-transform duration-300"
                 aria-hidden
               />
               <span className="relative max-w-full truncate">{tab.label}</span>

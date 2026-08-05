@@ -74,8 +74,16 @@ async function EventRow({
             {formatEventDateShort(event.starts_at, locale)} · {event.venue}
           </span>
         </span>
-        <span className="shrink-0 text-[13px] font-bold">
-          {Number.isFinite(from) ? formatPriceXaf(from) : t("freeEntry")}
+        {/* Une soirée passée n'affiche plus son prix : il n'y a plus rien
+            à acheter, seulement à se souvenir. */}
+        <span
+          className={`shrink-0 text-[13px] font-bold ${dimmed ? "text-smoke" : ""}`}
+        >
+          {dimmed
+            ? t("endedTag")
+            : Number.isFinite(from)
+              ? formatPriceXaf(from)
+              : t("freeEntry")}
         </span>
       </Link>
     </li>

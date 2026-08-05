@@ -273,6 +273,55 @@ body {
   animation: spot-pulse 1.8s ease-in-out infinite;
 }
 
+/*
+ * Entrée en scène.
+ *
+ * Une carte qui apparaît en montant se lit comme posée sur la page, pas
+ * peinte avec elle. Le décalage se donne par `--rise-i` (l'index dans la
+ * liste), plafonné à 8 × 55 ms : au-delà, l'attente se voit.
+ *
+ * L'animation part de `both` : l'élément est invisible avant son tour,
+ * mais toujours présent dans le flux — rien ne saute une fois arrivé.
+ */
+@keyframes spot-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility rise {
+  animation: spot-rise 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(min(var(--rise-i, 0), 8) * 55ms);
+}
+
+/*
+ * Battement d'un point « en direct ».
+ *
+ * Sert aux compteurs qui bougent d'eux-mêmes — personnes qui regardent,
+ * commande en attente du webhook. Jamais décoratif : s'il bat, c'est que
+ * quelque chose se rafraîchit.
+ */
+@keyframes spot-beat {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@utility beat {
+  animation: spot-beat 1.6s ease-in-out infinite;
+}
+
 /* Voile de chargement, pour les surfaces en attente de données. */
 @keyframes spot-shimmer {
   from {
@@ -326,8 +375,17 @@ body {
 /* Qui a demandé moins de mouvement n'en reçoit aucun de décoratif. */
 @media (prefers-reduced-motion: reduce) {
   .spot-dot,
-  .shimmer {
+  .shimmer,
+  .beat {
     animation: none;
+  }
+
+  /* L'entrée n'est pas supprimée mais neutralisée : sans elle, les
+     éléments resteraient à `opacity: 0`. */
+  .rise {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   .press:active {

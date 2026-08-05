@@ -123,6 +123,29 @@ export async function requireAdmin(): Promise<Profile> {
 }
 
 /**
+ * L'utilisateur a-t-il rejoint au moins une campagne d'affiliation ?
+ *
+ * `profiles.role` ne répond pas à cette question : la colonne existe mais
+ * personne ne l'écrit — devenir creator, c'est rejoindre une campagne, et
+ * c'est cet état-là qui fait foi. La lecture passe par la RLS
+ * (creator_links_select_own), donc un anonyme voit zéro.
+ *
+ * Sert à décider des onglets affichés, jamais d'un droit : `/creator`
+ * vérifie pour son propre compte.
+ */
+export const isCreator = cache(async (): Promise<boolean> => {
+  const user = await getUser();
+  if (!user) return false;
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("creator_links")
+    .select("id", { count: "exact", head: true });
+
+  return (count ?? 0) > 0;
+});
+
+/**
  * Organisateurs appartenant à l'utilisateur courant.
  * Vide s'il n'en gère aucun — appelant responsable du refus.
  */

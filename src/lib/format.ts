@@ -37,6 +37,23 @@ export function formatEventDate(iso: string, locale: Locale): string {
   return `${day} · ${time}`;
 }
 
+/**
+ * La soirée est-elle passée ?
+ *
+ * L'heure de début fait foi, faute d'heure de fin en base : un événement
+ * bascule donc à « terminé » quand il commence. C'est le comportement
+ * voulu — on ne vend pas un billet pour une porte déjà ouverte, et les
+ * retardataires achètent avant de se déplacer.
+ *
+ * La fonction vit ici, hors des composants : `Date.now()` appelé pendant
+ * le rendu est une impureté que React refuse (react-hooks/purity). Elle
+ * n'a rien d'un détail de style — l'état affiché doit être décidé une
+ * fois, à la requête, pas re-calculé à chaque rendu.
+ */
+export function isEventOver(startsAt: string): boolean {
+  return new Date(startsAt).getTime() < Date.now();
+}
+
 /** Forme courte pour les vignettes : « 15 août », « Aug 15 ». */
 export function formatEventDateShort(iso: string, locale: Locale): string {
   return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", {

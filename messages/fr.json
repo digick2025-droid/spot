@@ -44,7 +44,7 @@
     "follow": "Suivre",
     "following": "Suivi ✓",
     "home": "Accueil",
-    "explore": "Explorer",
+    "explore": "Événements",
     "passTab": "SPOT PASS",
     "profile": "Profil",
     "settings": "Paramètres",
@@ -97,7 +97,12 @@
     "yourLink": "Ton lien de promo",
     "copy": "Copier",
     "copied": "Copié ✓",
-    "abonnes": "Abonnés"
+    "abonnes": "Abonnés",
+    "becomeOrganizer": "Devenir organisateur",
+    "becomeOrganizerHint": "Vends tes billets en Mobile Money, encaisse en FCFA, scanne les entrées à la porte.",
+    "becomeCreatorHint": "Ou fais la promo des événements des autres et touche une commission sur chaque billet.",
+    "mySpace": "Mon espace",
+    "creatorTab": "Creator"
   },
   "auth": {
     "title": "Connexion",
@@ -153,7 +158,11 @@
     "share": "Partager",
     "linkCopied": "Lien copié ✓",
     "lineup": "Organisé par",
-    "getTicket": "Prendre ma place"
+    "getTicket": "Prendre ma place",
+    "book": "Réserver",
+    "ended": "Terminé",
+    "endedTag": "Fin",
+    "endedHint": "Cet événement est terminé. Les ventes sont closes."
   },
   "checkout": {
     "title": "Paiement",

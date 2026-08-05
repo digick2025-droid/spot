@@ -44,7 +44,7 @@
     "follow": "Follow",
     "following": "Following ✓",
     "home": "Home",
-    "explore": "Explore",
+    "explore": "Events",
     "passTab": "SPOT PASS",
     "profile": "Profile",
     "settings": "Settings",
@@ -97,7 +97,12 @@
     "yourLink": "Your promo link",
     "copy": "Copy",
     "copied": "Copied ✓",
-    "abonnes": "Followers"
+    "abonnes": "Followers",
+    "becomeOrganizer": "Become an organizer",
+    "becomeOrganizerHint": "Sell your tickets over Mobile Money, get paid in FCFA, scan entries at the door.",
+    "becomeCreatorHint": "Or promote other people's events and earn a commission on every ticket.",
+    "mySpace": "My space",
+    "creatorTab": "Creator"
   },
   "auth": {
     "title": "Sign in",
@@ -153,7 +158,11 @@
     "share": "Share",
     "linkCopied": "Link copied ✓",
     "lineup": "Organised by",
-    "getTicket": "Get my spot"
+    "getTicket": "Get my spot",
+    "book": "Book",
+    "ended": "Ended",
+    "endedTag": "Over",
+    "endedHint": "This event is over. Sales are closed."
   },
   "checkout": {
     "title": "Payment",

@@ -3,7 +3,8 @@ import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
 import { EventCard } from "@/components/event-card";
 import { InstallBanner } from "@/components/install-banner";
-import { getUser } from "@/lib/auth/dal";
+import { OrganizerCta } from "@/components/organizer-cta";
+import { getOwnedOrganizers, getUser } from "@/lib/auth/dal";
 import { listCategories, listCities, listEvents } from "@/lib/db/events";
 import { DiscoverFilters } from "./filters";
 
@@ -21,13 +22,15 @@ export default async function DiscoverPage({
 
   const { ville, categorie, q } = await searchParams;
   const t = await getTranslations("events");
+  const tApp = await getTranslations("app");
   const activeLocale = (await getLocale()) as Locale;
 
-  const [events, categories, cities, user] = await Promise.all([
+  const [events, categories, cities, user, ownedOrganizers] = await Promise.all([
     listEvents({ city: ville, category: categorie, search: q }),
     listCategories(),
     listCities(),
     getUser(),
+    getOwnedOrganizers(),
   ]);
 
   const isFiltered = Boolean(
@@ -37,7 +40,7 @@ export default async function DiscoverPage({
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-6">
       <h1 className="font-display text-[30px] font-extrabold uppercase">
-        {t("discover")}
+        {tApp("explore")}
       </h1>
 
       <DiscoverFilters
@@ -71,9 +74,18 @@ export default async function DiscoverPage({
         </div>
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} />
+          {events.map((event, index) => (
+            <EventCard key={event.id} event={event} index={index} />
           ))}
+        </div>
+      )}
+
+      {/* L'appel aux organisateurs ferme la page plutôt que de l'ouvrir :
+          on vient ici chercher une soirée, pas une offre. Il n'a rien à
+          dire à qui tient déjà une maison. */}
+      {ownedOrganizers.length === 0 && (
+        <div className="mt-10">
+          <OrganizerCta />
         </div>
       )}
     </main>

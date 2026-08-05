@@ -4,7 +4,8 @@ import { routing, type Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import { EventCard } from "@/components/event-card";
 import { DoneIcon, HotIcon, NextIcon, SearchIcon } from "@/components/icons";
-import { getProfile } from "@/lib/auth/dal";
+import { OrganizerCta } from "@/components/organizer-cta";
+import { getOwnedOrganizers, getProfile } from "@/lib/auth/dal";
 import { listCategories, listEvents } from "@/lib/db/events";
 import { listHomeOrganizers } from "@/lib/db/organizers";
 import { toggleFollow } from "@/lib/db/follow-actions";
@@ -31,12 +32,14 @@ export default async function HomePage({
   const tEvents = await getTranslations("events");
   const activeLocale = (await getLocale()) as Locale;
 
-  const [profile, popularEvents, categories, organizers] = await Promise.all([
-    getProfile(),
-    listEvents({ limit: 4 }),
-    listCategories(),
-    listHomeOrganizers(),
-  ]);
+  const [profile, popularEvents, categories, organizers, ownedOrganizers] =
+    await Promise.all([
+      getProfile(),
+      listEvents({ limit: 4 }),
+      listCategories(),
+      listHomeOrganizers(),
+      getOwnedOrganizers(),
+    ]);
 
   const name = profile ? displayName(profile.full_name, profile.email) : "";
 
@@ -124,8 +127,8 @@ export default async function HomePage({
             </p>
           ) : (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
-              {popularEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
+              {popularEvents.map((event, index) => (
+                <EventCard key={event.id} event={event} index={index} />
               ))}
             </div>
           )}
@@ -226,6 +229,12 @@ export default async function HomePage({
               ))}
             </ul>
           </section>
+        )}
+
+        {ownedOrganizers.length === 0 && (
+          <div className="mt-10">
+            <OrganizerCta />
+          </div>
         )}
       </div>
     </main>

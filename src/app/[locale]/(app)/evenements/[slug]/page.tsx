@@ -8,7 +8,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { BackIcon, DateIcon, DoneIcon, PlaceIcon } from "@/components/icons";
 import { ShareButton } from "@/components/share-button";
 import { getEventBySlug } from "@/lib/db/events";
-import { formatEventDate, formatPriceXaf } from "@/lib/format";
+import { formatEventDate, formatPriceXaf, isEventOver } from "@/lib/format";
 import { posterUrl } from "@/lib/posters";
 import { getSiteUrl } from "@/lib/site-url";
 import { getUser } from "@/lib/auth/dal";
@@ -52,6 +52,11 @@ export default async function EventPage({
   const user = await getUser();
   const poster = posterUrl(event.poster_path);
   const gradient = event.gradient ?? FALLBACK_GRADIENT;
+  // Une soirée passée reste consultable — on y revient pour la retrouver,
+  // ou parce qu'un lien traîne dans une conversation — mais elle ne se
+  // vend plus. La vérité reste côté serveur : `createOrder` refuse de
+  // toute façon un événement qui n'est pas ouvert à la vente.
+  const ended = isEventOver(event.starts_at);
 
   const description =
     activeLocale === "fr" ? event.description_fr : event.description_en;
@@ -107,7 +112,19 @@ export default async function EventPage({
           )}
         </div>
 
-        <h1 className="font-display mt-7 text-[30px] font-extrabold uppercase leading-[1.05] sm:text-4xl">
+        {ended && (
+          <p className="mt-6">
+            <span className="font-display inline-block rounded-full bg-white/5 px-3.5 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-mist ring-1 ring-inset ring-white/12">
+              {t("ended")}
+            </span>
+          </p>
+        )}
+
+        <h1
+          className={`font-display text-[30px] font-extrabold uppercase leading-[1.05] sm:text-4xl ${
+            ended ? "mt-3" : "mt-7"
+          }`}
+        >
           {event.title}
         </h1>
 
@@ -176,14 +193,32 @@ export default async function EventPage({
         )}
 
         <section className="mt-8">
-          <h2 className="font-display text-[17px] font-extrabold">
-            {t("chooseTicket")}
-          </h2>
-          <TicketPicker
-            eventSlug={event.slug}
-            ticketTypes={ticketTypes}
-            isSignedIn={Boolean(user)}
-          />
+          {ended ? (
+            <div className="sheen rounded-sheet bg-surface p-8 text-center">
+              <p className="font-display text-[16px] font-extrabold">
+                {t("ended")}
+              </p>
+              <p className="mt-2 text-[13px] text-mist">{t("endedHint")}</p>
+              <Link
+                href="/decouvrir"
+                className="press grad-ember glow-brand font-display mt-6 inline-flex items-center gap-1.5 rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white"
+              >
+                <BackIcon size={15} strokeWidth={2.4} aria-hidden />
+                {t("backToEvents")}
+              </Link>
+            </div>
+          ) : (
+            <>
+              <h2 className="font-display text-[17px] font-extrabold">
+                {t("chooseTicket")}
+              </h2>
+              <TicketPicker
+                eventSlug={event.slug}
+                ticketTypes={ticketTypes}
+                isSignedIn={Boolean(user)}
+              />
+            </>
+          )}
         </section>
       </div>
     </main>
