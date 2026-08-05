@@ -40,12 +40,12 @@ export default async function JoinCampaignPage({
 
   if (!campaign) {
     return (
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-8">
         <h1 className="font-display text-2xl font-extrabold">{t("notFound")}</h1>
         <p className="mt-2 text-[14px] text-mist">{t("notFoundHint")}</p>
         <Link
           href="/decouvrir"
-          className="mt-5 inline-block rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
+          className="press grad-ember glow-brand font-display mt-6 inline-block rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white"
         >
           {tApp("explore")}
         </Link>
@@ -59,55 +59,79 @@ export default async function JoinCampaignPage({
       : t("ruleFixed", { value: campaign.commissionValue });
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-8">
-      <h1 className="font-display text-2xl font-extrabold">{t("joinTitle")}</h1>
+    <main className="relative flex-1 overflow-hidden">
+      {/* L'invitation reste une invitation : la couleur de l'événement
+          l'accompagne, comme sur un carton. */}
+      <span
+        aria-hidden
+        className="halo inset-x-0 -top-20 h-[260px] opacity-35"
+        style={
+          {
+            "--halo": campaign.event.gradient ?? FALLBACK_GRADIENT,
+          } as React.CSSProperties
+        }
+      />
 
-      <section className="mt-6 rounded-[22px] border border-white/10 bg-card p-6">
-        <div className="flex items-center gap-4">
-          <span
-            aria-hidden
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl"
-            style={{ background: campaign.event.gradient ?? FALLBACK_GRADIENT }}
-          >
-            {campaign.event.glyph ?? "🎟"}
-          </span>
-          <div className="min-w-0">
-            <p className="font-display truncate text-[17px] font-extrabold">
-              {campaign.event.title}
-            </p>
-            <p className="mt-0.5 text-[12px] text-mist">
-              {campaign.event.city} ·{" "}
-              {formatEventDate(campaign.event.starts_at, activeLocale)}
+      <div className="relative mx-auto w-full max-w-2xl px-5 pb-10 pt-8">
+        <h1 className="font-display text-2xl font-extrabold">
+          {t("joinTitle")}
+        </h1>
+
+        <section className="sheen mt-6 rounded-sheet bg-surface p-6">
+          <div className="flex items-center gap-4">
+            <span
+              aria-hidden
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl"
+              style={{
+                background: campaign.event.gradient ?? FALLBACK_GRADIENT,
+              }}
+            >
+              {campaign.event.glyph ?? "🎟"}
+            </span>
+            <div className="min-w-0">
+              <p className="font-display truncate text-[17px] font-extrabold">
+                {campaign.event.title}
+              </p>
+              <p className="mt-0.5 text-[12px] text-mist">
+                {campaign.event.city} ·{" "}
+                {formatEventDate(campaign.event.starts_at, activeLocale)}
+              </p>
+            </div>
+          </div>
+
+          {/* La règle de commission est ce qu'on vient lire : elle porte la
+              braise, comme un prix. */}
+          <div className="mt-5 rounded-2xl bg-ink p-4 ring-1 ring-inset ring-white/[0.06]">
+            <p className="text-[11px] text-mist">{campaign.name}</p>
+            <p className="text-ember font-display mt-1 text-[19px] font-extrabold">
+              {rule}
             </p>
           </div>
-        </div>
 
-        <div className="mt-5 rounded-2xl bg-ink p-4">
-          <p className="text-[11px] text-mist">{campaign.name}</p>
-          <p className="font-display mt-1 text-[19px] font-extrabold text-brand">
-            {rule}
-          </p>
-        </div>
-
-        {campaign.alreadyJoined ? (
-          <>
-            <p className="mt-5 text-[14px] font-semibold">{t("alreadyJoined")}</p>
-            <Link
-              href="/creator"
-              className="mt-4 inline-block rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
-            >
-              {t("seeMyLink")}
-            </Link>
-          </>
-        ) : campaign.status !== "active" ? (
-          <p className="mt-5 text-[14px] text-mist">{t("errors.campaignClosed")}</p>
-        ) : (
-          <>
-            <p className="mt-5 text-[13px] text-mist">{t("joinHint")}</p>
-            <JoinForm campaignId={campaign.id} />
-          </>
-        )}
-      </section>
+          {campaign.alreadyJoined ? (
+            <>
+              <p className="mt-5 text-[14px] font-semibold">
+                {t("alreadyJoined")}
+              </p>
+              <Link
+                href="/creator"
+                className="press grad-ember glow-brand font-display mt-4 inline-block rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white"
+              >
+                {t("seeMyLink")}
+              </Link>
+            </>
+          ) : campaign.status !== "active" ? (
+            <p className="mt-5 text-[14px] text-mist">
+              {t("errors.campaignClosed")}
+            </p>
+          ) : (
+            <>
+              <p className="mt-5 text-[13px] text-mist">{t("joinHint")}</p>
+              <JoinForm campaignId={campaign.id} />
+            </>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

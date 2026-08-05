@@ -2,6 +2,13 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import {
+  AlertIcon,
+  CloseIcon,
+  DoneIcon,
+  LoadingIcon,
+  ScanIcon,
+} from "@/components/icons";
 import { submitScan } from "@/lib/db/scan-actions";
 import { initialScanState } from "@/lib/db/scan-state";
 
@@ -19,14 +26,32 @@ declare global {
   }
 }
 
-const TONE: Record<string, string> = {
-  ok: "border-success bg-success/15 text-success",
-  already_used: "border-warning bg-warning/15 text-warning",
-  void: "border-danger bg-danger/15 text-danger",
-  wrong_event: "border-danger bg-danger/15 text-danger",
-  not_found: "border-danger bg-danger/15 text-danger",
-  forbidden: "border-danger bg-danger/15 text-danger",
+/**
+ * Le verdict, à l'entrée d'une salle : c'est la couleur et le pictogramme
+ * qui sont lus, pas la phrase. Le portier a une file devant lui, la nuit,
+ * et une seconde par personne — d'où le bloc pleine largeur, la teinte
+ * franche et l'icône qui dit passe / attention / refusé.
+ */
+const VERDICT: Record<
+  string,
+  { tone: string; icon: "ok" | "warn" | "no" }
+> = {
+  ok: { tone: "bg-success/15 text-success ring-success", icon: "ok" },
+  already_used: {
+    tone: "bg-warning/15 text-warning ring-warning",
+    icon: "warn",
+  },
+  void: { tone: "bg-danger/15 text-danger ring-danger", icon: "no" },
+  wrong_event: { tone: "bg-danger/15 text-danger ring-danger", icon: "no" },
+  not_found: { tone: "bg-danger/15 text-danger ring-danger", icon: "no" },
+  forbidden: { tone: "bg-danger/15 text-danger ring-danger", icon: "no" },
 };
+
+function VerdictIcon({ kind }: { kind: "ok" | "warn" | "no" }) {
+  if (kind === "ok") return <DoneIcon size={30} strokeWidth={3} />;
+  if (kind === "warn") return <AlertIcon size={28} strokeWidth={2.4} />;
+  return <CloseIcon size={28} strokeWidth={3} />;
+}
 
 export function ScanConsole({ eventId }: { eventId: string }) {
   const t = useTranslations("scan");
@@ -107,41 +132,79 @@ export function ScanConsole({ eventId }: { eventId: string }) {
     };
   }, [cameraOn, supported]);
 
+  const verdict = state.outcome ? VERDICT[state.outcome] : undefined;
+
   return (
     <div className="mt-5 flex flex-col gap-4">
       {state.outcome && (
         <div
           role="status"
           aria-live="assertive"
-          className={`rounded-2xl border px-4 py-4 text-center ${
-            TONE[state.outcome] ?? "border-white/15 bg-card"
+          className={`flex items-center gap-4 rounded-card px-5 py-4 ring-1 ring-inset ${
+            verdict?.tone ?? "bg-surface ring-white/15"
           }`}
         >
-          <p className="font-display text-[16px] font-extrabold">{state.message}</p>
-          {state.detail && <p className="mt-1 text-[13px]">{state.detail}</p>}
+          {verdict && (
+            <span aria-hidden className="shrink-0">
+              <VerdictIcon kind={verdict.icon} />
+            </span>
+          )}
+          <span className="min-w-0 flex-1">
+            <span className="font-display block text-[17px] font-extrabold leading-tight">
+              {state.message}
+            </span>
+            {state.detail && (
+              <span className="mt-1 block text-[13px] opacity-90">
+                {state.detail}
+              </span>
+            )}
+          </span>
         </div>
       )}
 
       {supported ? (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-card">
-          <video
-            ref={videoRef}
-            muted
-            playsInline
-            className={`aspect-square w-full object-cover ${cameraOn ? "" : "hidden"}`}
-          />
+        <div className="overflow-hidden rounded-sheet bg-surface ring-1 ring-inset ring-white/10">
+          <div className="relative">
+            <video
+              ref={videoRef}
+              muted
+              playsInline
+              className={`aspect-square w-full object-cover ${cameraOn ? "" : "hidden"}`}
+            />
+            {/* La mire : quatre coins qui disent où présenter le billet.
+                Sans elle, on tend le téléphone au hasard. */}
+            {cameraOn && (
+              <span aria-hidden className="pointer-events-none absolute inset-0">
+                <span className="absolute inset-[14%]">
+                  <span className="absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-[3px] border-t-[3px] border-white/85" />
+                  <span className="absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-[3px] border-t-[3px] border-white/85" />
+                  <span className="absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-[3px] border-l-[3px] border-white/85" />
+                  <span className="absolute bottom-0 right-0 h-8 w-8 rounded-br-lg border-b-[3px] border-r-[3px] border-white/85" />
+                </span>
+              </span>
+            )}
+          </div>
           <div className="p-3">
             <button
               type="button"
               onClick={cameraOn ? stopCamera : startCamera}
-              className="w-full rounded-xl bg-brand px-4 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
+              className={`press font-display flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-[14px] font-extrabold ${
+                cameraOn
+                  ? "bg-surface-high text-fog ring-1 ring-inset ring-white/12"
+                  : "grad-ember glow-brand text-white"
+              }`}
             >
+              {cameraOn ? (
+                <CloseIcon size={16} strokeWidth={2.6} aria-hidden />
+              ) : (
+                <ScanIcon size={16} strokeWidth={2.4} aria-hidden />
+              )}
               {cameraOn ? t("stopCamera") : t("startCamera")}
             </button>
           </div>
         </div>
       ) : (
-        <p className="rounded-2xl border border-white/10 bg-card px-4 py-3 text-[13px] text-mist">
+        <p className="rounded-card bg-surface px-4 py-3 text-[13px] text-mist ring-1 ring-inset ring-white/10">
           {t("cameraUnsupported")}
         </p>
       )}
@@ -149,7 +212,7 @@ export function ScanConsole({ eventId }: { eventId: string }) {
       {cameraError && (
         <p
           role="alert"
-          className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-[13px] text-danger"
+          className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] text-danger ring-1 ring-inset ring-danger/40"
         >
           {cameraError}
         </p>
@@ -161,21 +224,32 @@ export function ScanConsole({ eventId }: { eventId: string }) {
           <span className="text-[13px] font-semibold text-fog">
             {t("manualLabel")}
           </span>
+          {/* Le code se saisit à la main quand le QR est rayé ou l'écran
+              cassé : la saisie reste en chasse fixe et bien espacée pour
+              qu'on relise ce qu'on tape. */}
           <input
             ref={payloadRef}
             name="payload"
             autoComplete="off"
             autoCapitalize="characters"
             placeholder="A1B2C3D4E5F6"
-            className="rounded-2xl border border-white/10 bg-card px-4 py-3.5 font-mono text-[15px] uppercase tracking-widest text-white placeholder:text-smoke focus:border-brand focus:outline-none"
+            className="rounded-2xl bg-surface px-4 py-3.5 font-mono text-[15px] uppercase tracking-widest text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand"
           />
         </label>
         <span className="text-[12px] text-smoke">{t("manualHint")}</span>
         <button
           type="submit"
           disabled={pending}
-          className="mt-1 rounded-2xl border border-white/15 px-4 py-3 font-display text-[14px] font-extrabold hover:border-brand/50 disabled:opacity-50"
+          className="press font-display mt-1 flex items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-[14px] font-extrabold ring-1 ring-inset ring-white/15 hover:ring-brand/60 disabled:opacity-60"
         >
+          {pending && (
+            <LoadingIcon
+              size={16}
+              strokeWidth={2.6}
+              className="animate-spin"
+              aria-hidden
+            />
+          )}
           {pending ? t("validating") : t("validate")}
         </button>
       </form>

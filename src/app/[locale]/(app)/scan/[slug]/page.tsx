@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { BackIcon } from "@/components/icons";
 import { requireProfile } from "@/lib/auth/dal";
 import { eventScanCounts, listScannableEvents } from "@/lib/db/scan";
 import { ScanConsole } from "./scan-console";
@@ -29,23 +30,26 @@ export default async function ScanEventPage({
   const counts = await eventScanCounts(event.id);
 
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 px-6 py-8">
+    <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-10 pt-4">
       <Link
         href="/scan"
-        className="text-[13px] font-semibold text-mist hover:text-white"
+        className="press inline-flex items-center gap-1.5 text-[13px] font-semibold text-mist hover:text-white"
       >
-        ← {t("backToEvents")}
+        <BackIcon size={16} strokeWidth={2.2} aria-hidden />
+        {t("backToEvents")}
       </Link>
 
-      <h1 className="font-display mt-4 text-2xl font-extrabold uppercase leading-tight tracking-tight">
+      <h1 className="font-display mt-4 text-2xl font-extrabold uppercase leading-tight">
         {event.title}
       </h1>
       <p className="mt-1 text-[13px] text-mist">
         {event.venue} · {event.city}
       </p>
 
-      <div className="mt-5 flex items-baseline gap-2 rounded-2xl border border-white/10 bg-card px-4 py-3">
-        <span className="font-display text-3xl font-extrabold text-brand">
+      {/* Le compteur d'entrées : la seule statistique qui compte pendant
+          que la file avance. */}
+      <div className="sheen mt-5 flex items-baseline gap-2 rounded-card bg-surface px-5 py-4">
+        <span className="text-ember font-display text-3xl font-extrabold">
           {counts.used}
         </span>
         <span className="text-[13px] text-mist">

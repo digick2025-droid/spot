@@ -2,6 +2,8 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { NextIcon, ScanIcon } from "@/components/icons";
+import { Sticker } from "@/components/sticker";
 import { requireProfile } from "@/lib/auth/dal";
 import { listScannableEvents } from "@/lib/db/scan";
 import { formatEventDate } from "@/lib/format";
@@ -25,15 +27,18 @@ export default async function ScanIndexPage({
   const events = await listScannableEvents();
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-      <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight">
+    <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-6">
+      <h1 className="font-display text-[30px] font-extrabold uppercase">
         {t("title")}
       </h1>
       <p className="mt-2 text-[14px] text-mist">{t("chooseEvent")}</p>
 
       {events.length === 0 ? (
-        <div className="mt-8 rounded-[20px] border border-white/10 bg-card p-8 text-center">
-          <p className="text-[15px] font-semibold">{t("noEvents")}</p>
+        <div className="sheen mt-8 rounded-sheet bg-surface p-8 text-center">
+          <Sticker tone="ember" size="lg" className="mx-auto">
+            <ScanIcon size={30} strokeWidth={2.2} />
+          </Sticker>
+          <p className="mt-5 text-[15px] font-semibold">{t("noEvents")}</p>
           <p className="mt-2 text-[13px] text-mist">{t("noEventsHint")}</p>
         </div>
       ) : (
@@ -42,7 +47,7 @@ export default async function ScanIndexPage({
             <li key={event.id}>
               <Link
                 href={`/scan/${event.slug}`}
-                className="flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-4 transition-colors hover:border-brand/50"
+                className="press sheen flex items-center gap-4 rounded-card bg-surface p-4 transition-colors hover:bg-surface-high"
               >
                 <span
                   aria-hidden
@@ -55,13 +60,17 @@ export default async function ScanIndexPage({
                   <span className="font-display block truncate text-[15px] font-extrabold">
                     {event.title}
                   </span>
-                  <span className="mt-0.5 block text-[12px] text-mist">
-                    {formatEventDate(event.starts_at, activeLocale)} · {event.city}
+                  <span className="mt-0.5 block truncate text-[12px] text-mist">
+                    {formatEventDate(event.starts_at, activeLocale)} ·{" "}
+                    {event.city}
                   </span>
                 </span>
-                <span aria-hidden className="text-mist">
-                  →
-                </span>
+                <NextIcon
+                  size={18}
+                  strokeWidth={2.4}
+                  className="shrink-0 text-smoke"
+                  aria-hidden
+                />
               </Link>
             </li>
           ))}

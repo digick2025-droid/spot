@@ -12,6 +12,8 @@ import {
   type PayoutStatus,
 } from "@/lib/db/affiliation";
 import { formatEventDateShort, formatPriceXaf } from "@/lib/format";
+import { CampaignIcon } from "@/components/icons";
+import { Sticker } from "@/components/sticker";
 import { CopyButton } from "@/components/copy-button";
 import { PayoutPhoneForm } from "./payout-phone-form";
 
@@ -24,7 +26,7 @@ const STATUS_KEY: Record<CampaignStatus, string> = {
 };
 
 const STATUS_STYLE: Record<CampaignStatus, string> = {
-  active: "bg-brand/15 text-brand",
+  active: "bg-brand/15 text-brand-bright",
   paused: "bg-warning/15 text-warning",
   ended: "bg-white/10 text-mist",
 };
@@ -66,82 +68,99 @@ export default async function CreatorPage({
   const prefix = activeLocale === routing.defaultLocale ? "" : `/${activeLocale}`;
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-      <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight">
-        {tApp("infSpace")}
-      </h1>
+    <main className="relative flex-1 overflow-hidden">
+      {/* Le créateur appartient au monde violet : c'est la nuit, pas la
+          braise, qui éclaire son espace. */}
+      <span
+        aria-hidden
+        className="halo inset-x-0 -top-24 h-[300px] opacity-35"
+        style={{ "--halo": "var(--grad-night)" } as React.CSSProperties}
+      />
 
-      {space.campaigns.length === 0 ? (
-        <div className="mt-8 rounded-[20px] border border-white/10 bg-card p-8 text-center">
-          <div className="text-4xl" aria-hidden>
-            📣
+      <div className="relative mx-auto w-full max-w-3xl px-5 pb-10 pt-6">
+        <h1 className="font-display text-[30px] font-extrabold uppercase">
+          {tApp("infSpace")}
+        </h1>
+
+        {space.campaigns.length === 0 ? (
+          <div className="sheen mt-8 rounded-sheet bg-surface p-8 text-center">
+            <Sticker tone="night" size="lg" className="mx-auto">
+              <CampaignIcon size={30} strokeWidth={2.2} />
+            </Sticker>
+            <p className="mt-5 text-[15px] font-semibold">{t("creatorEmpty")}</p>
+            <p className="mt-2 text-[13px] text-mist">{t("creatorEmptyHint")}</p>
+            <Link
+              href="/decouvrir"
+              className="press grad-ember glow-brand font-display mt-6 inline-block rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white"
+            >
+              {tApp("explore")}
+            </Link>
           </div>
-          <p className="mt-4 text-[15px] font-semibold">{t("creatorEmpty")}</p>
-          <p className="mt-2 text-[13px] text-mist">{t("creatorEmptyHint")}</p>
-          <Link
-            href="/decouvrir"
-            className="mt-5 inline-block rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90"
-          >
-            {tApp("explore")}
-          </Link>
-        </div>
-      ) : (
-        <>
-          <section className="mt-6 rounded-[24px] border border-accent/40 bg-card p-6">
-            <p className="text-[12px] text-mist">{tApp("totalEarnings")}</p>
-            <p className="font-display mt-1 text-4xl font-extrabold leading-none text-brand">
-              {formatPriceXaf(space.totalEarningsXaf)}
-            </p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <Stat label={tApp("clicks")} value={`${space.totalClicks}`} />
-              <Stat label={t("sales")} value={`${space.totalSales}`} />
-              <Stat
-                label={t("toReceive")}
-                value={formatPriceXaf(space.totalDueXaf + space.totalPendingXaf)}
-              />
-              <Stat label={t("paidOut")} value={formatPriceXaf(space.totalPaidXaf)} />
-            </div>
-          </section>
-
-          {/* ── Versements ───────────────────────────────────────── */}
-          <section className="mt-8 rounded-[22px] border border-white/10 bg-card p-6">
-            <h2 className="font-display text-[15px] font-extrabold">
-              {t("payoutsTitle")}
-            </h2>
-            <p className="mt-2 text-[13px] text-mist">{t("payoutsHint")}</p>
-
-            <PayoutPhoneForm phone={space.payoutPhone ?? ""} />
-
-            {space.payouts.length === 0 ? (
-              <p className="mt-5 text-[13px] text-mist">{t("payoutsEmpty")}</p>
-            ) : (
-              <ul className="mt-5 flex flex-col gap-2">
-                {space.payouts.map((payout) => (
-                  <li key={payout.id}>
-                    <PayoutRow payout={payout} locale={activeLocale} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <h2 className="font-display mt-8 text-[15px] font-extrabold">
-            {tApp("myCampaigns")}
-          </h2>
-
-          <ul className="mt-4 flex flex-col gap-4">
-            {space.campaigns.map((campaign) => (
-              <li key={campaign.linkId}>
-                <CampaignCard
-                  campaign={campaign}
-                  locale={activeLocale}
-                  promoUrl={`${origin}${prefix}/r/${campaign.code}`}
+        ) : (
+          <>
+            {/* Le total gagné est le chiffre qu'on vient chercher : il a
+                droit à la braise et à toute la largeur. */}
+            <section className="sheen mt-6 rounded-sheet bg-surface-high p-6">
+              <p className="text-[12px] text-mist">{tApp("totalEarnings")}</p>
+              <p className="text-ember font-display mt-1 text-[44px] font-extrabold leading-none">
+                {formatPriceXaf(space.totalEarningsXaf)}
+              </p>
+              <div className="mt-6 grid grid-cols-2 gap-2.5">
+                <Stat label={tApp("clicks")} value={`${space.totalClicks}`} />
+                <Stat label={t("sales")} value={`${space.totalSales}`} />
+                <Stat
+                  label={t("toReceive")}
+                  value={formatPriceXaf(
+                    space.totalDueXaf + space.totalPendingXaf
+                  )}
                 />
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+                <Stat
+                  label={t("paidOut")}
+                  value={formatPriceXaf(space.totalPaidXaf)}
+                />
+              </div>
+            </section>
+
+            {/* ── Versements ───────────────────────────────────────── */}
+            <section className="sheen mt-8 rounded-sheet bg-surface p-6">
+              <h2 className="font-display text-[17px] font-extrabold">
+                {t("payoutsTitle")}
+              </h2>
+              <p className="mt-2 text-[13px] text-mist">{t("payoutsHint")}</p>
+
+              <PayoutPhoneForm phone={space.payoutPhone ?? ""} />
+
+              {space.payouts.length === 0 ? (
+                <p className="mt-5 text-[13px] text-mist">{t("payoutsEmpty")}</p>
+              ) : (
+                <ul className="mt-5 flex flex-col gap-2">
+                  {space.payouts.map((payout) => (
+                    <li key={payout.id}>
+                      <PayoutRow payout={payout} locale={activeLocale} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <h2 className="font-display mt-9 text-[17px] font-extrabold">
+              {tApp("myCampaigns")}
+            </h2>
+
+            <ul className="mt-4 flex flex-col gap-3">
+              {space.campaigns.map((campaign) => (
+                <li key={campaign.linkId}>
+                  <CampaignCard
+                    campaign={campaign}
+                    locale={activeLocale}
+                    promoUrl={`${origin}${prefix}/r/${campaign.code}`}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
     </main>
   );
 }
@@ -164,7 +183,7 @@ async function CampaignCard({
       : t("ruleFixed", { value: campaign.commissionValue });
 
   return (
-    <article className="rounded-[22px] border border-white/10 bg-card p-5">
+    <article className="sheen rounded-sheet bg-surface p-5">
       <div className="flex items-center gap-3">
         <Link
           href={`/evenements/${campaign.event.slug}`}
@@ -178,7 +197,7 @@ async function CampaignCard({
         <div className="min-w-0 flex-1">
           <Link
             href={`/evenements/${campaign.event.slug}`}
-            className="font-display block truncate text-[15px] font-extrabold hover:text-brand"
+            className="font-display block truncate text-[15px] font-extrabold hover:text-brand-bright"
           >
             {campaign.event.title}
           </Link>
@@ -194,7 +213,7 @@ async function CampaignCard({
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
         <Stat label={tApp("clicks")} value={`${campaign.clicks}`} dark />
         <Stat label={t("sales")} value={`${campaign.sales}`} dark />
         <Stat
@@ -207,12 +226,14 @@ async function CampaignCard({
 
       <p className="mt-4 text-[11px] text-mist">{tApp("yourLink")}</p>
       <div className="mt-2 flex gap-2">
-        <code className="min-w-0 flex-1 truncate rounded-full border border-dashed border-white/20 bg-ink px-4 py-3 text-[12px] text-brand">
+        {/* Le lien est ce que le créateur colle dans sa story : il se lit
+            d'un bloc, et le bouton de copie est aussi haut que lui. */}
+        <code className="min-w-0 flex-1 truncate rounded-full bg-ink px-4 py-3 text-[12px] text-brand-bright ring-1 ring-inset ring-white/12">
           {promoUrl}
         </code>
         <CopyButton
           value={promoUrl}
-          className="shrink-0 rounded-full border border-white/20 px-4 text-[12px] font-bold hover:border-brand hover:text-brand"
+          className="press shrink-0 rounded-full px-4 text-[12px] font-bold ring-1 ring-inset ring-white/15 hover:text-brand-bright"
         />
       </div>
       <p className="mt-2 text-[12px] text-mist">
@@ -233,7 +254,7 @@ async function PayoutRow({
   const t = await getTranslations("affiliation");
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-ink px-4 py-3 text-[12px]">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-ink px-4 py-3 text-[12px] ring-1 ring-inset ring-white/[0.06]">
       <span className="font-mono text-smoke">{payout.reference}</span>
       <span className="min-w-0 flex-1 truncate text-mist">{payout.eventTitle}</span>
       <span className="font-display text-[14px] font-extrabold">
@@ -262,10 +283,14 @@ function Stat({
   accent?: boolean;
 }) {
   return (
-    <div className={`rounded-2xl p-4 ${dark ? "bg-ink" : "bg-white/10"}`}>
+    <div
+      className={`rounded-2xl p-4 ring-1 ring-inset ring-white/[0.06] ${
+        dark ? "bg-ink" : "bg-white/[0.06]"
+      }`}
+    >
       <div className="text-[11px] text-mist">{label}</div>
       <div
-        className={`font-display mt-1.5 text-[19px] font-extrabold ${accent ? "text-brand" : ""}`}
+        className={`font-display mt-1.5 text-[19px] font-extrabold ${accent ? "text-brand-bright" : ""}`}
       >
         {value}
       </div>

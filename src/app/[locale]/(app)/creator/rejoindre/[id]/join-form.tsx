@@ -19,7 +19,7 @@ export function JoinForm({ campaignId }: { campaignId: string }) {
       {state.error && (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-[13px] text-danger"
+          className="mb-4 rounded-xl bg-danger/10 px-4 py-3 text-[13px] text-danger ring-1 ring-inset ring-danger/40"
         >
           {state.error}
         </p>
@@ -28,7 +28,7 @@ export function JoinForm({ campaignId }: { campaignId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-2xl bg-brand px-4 py-3.5 font-display text-[15px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+        className="press grad-ember glow-brand font-display w-full rounded-2xl px-4 py-4 text-[15px] font-extrabold text-white disabled:opacity-60"
       >
         {pending ? t("joining") : t("join")}
       </button>

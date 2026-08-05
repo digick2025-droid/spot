@@ -33,7 +33,7 @@ export function PayoutPhoneForm({ phone }: { phone: string }) {
           defaultValue={phone}
           placeholder="+237 6 71 23 45 67"
           aria-describedby="payout-phone-hint"
-          className="rounded-2xl border border-white/10 bg-ink px-4 py-3.5 text-[15px] text-white placeholder:text-smoke focus:border-brand focus:outline-none"
+          className="rounded-2xl bg-ink px-4 py-3.5 text-[15px] text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand"
         />
         <span id="payout-phone-hint" className="text-[12px] text-smoke">
           {t("payoutPhoneHint")}
@@ -43,7 +43,7 @@ export function PayoutPhoneForm({ phone }: { phone: string }) {
       {state.error && (
         <p
           role="alert"
-          className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-[13px] text-danger"
+          className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] text-danger ring-1 ring-inset ring-danger/40"
         >
           {state.error}
         </p>
@@ -52,7 +52,7 @@ export function PayoutPhoneForm({ phone }: { phone: string }) {
       {state.notice && (
         <p
           role="status"
-          className="rounded-xl border border-success/40 bg-success/10 px-4 py-3 text-[13px] text-success"
+          className="rounded-xl bg-success/10 px-4 py-3 text-[13px] text-success ring-1 ring-inset ring-success/40"
         >
           {state.notice}
         </p>
@@ -61,7 +61,7 @@ export function PayoutPhoneForm({ phone }: { phone: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-2xl bg-brand px-5 py-3 font-display text-[14px] font-extrabold text-white hover:opacity-90 disabled:opacity-50"
+        className="press grad-ember glow-brand font-display self-start rounded-2xl px-5 py-3 text-[14px] font-extrabold text-white disabled:opacity-60"
       >
         {pending ? t("savingPhone") : t("savePhone")}
       </button>
