@@ -5,16 +5,29 @@ import { routing, type Locale } from "@/i18n/routing";
 import {
   AddIcon,
   CampaignIcon,
+  CopyIcon,
   DateIcon,
   FollowIcon,
+  MobileMoneyIcon,
   OrganizerIcon,
+  PendingIcon,
   RevenueIcon,
   TicketIcon,
+  TrendIcon,
 } from "@/components/icons";
+import { CopyButton } from "@/components/copy-button";
 import { requireProfile } from "@/lib/auth/dal";
 import { getOrganizerDashboard, type MyEvent } from "@/lib/db/organizer";
-import { formatEventDate, formatPriceXaf } from "@/lib/format";
+import {
+  getOrganizerBalance,
+  getPlatformCommissionPercent,
+  listMyWithdrawals,
+  type Withdrawal,
+} from "@/lib/db/balances";
+import { getSiteOrigin } from "@/lib/db/affiliation";
+import { formatEventDate, formatEventDateShort, formatPriceXaf } from "@/lib/format";
 import { OrganizerSetup } from "./organizer-setup";
+import { WithdrawForm } from "./withdraw-form";
 
 const FALLBACK_GRADIENT = "linear-gradient(135deg,#FF6B35,#C2410C)";
 
@@ -73,18 +86,48 @@ export default async function OrganizerDashboardPage({
 
   const { organizer, events } = dashboard;
 
+  const [balance, percent, withdrawals, origin] = await Promise.all([
+    getOrganizerBalance(organizer.id),
+    getPlatformCommissionPercent(),
+    listMyWithdrawals("organizer"),
+    getSiteOrigin(),
+  ]);
+
+  const openRequest = withdrawals.find((w) => w.status === "requested") ?? null;
+  const prefix = activeLocale === routing.defaultLocale ? "" : `/${activeLocale}`;
+  const publicUrl = `${origin}${prefix}/organisateurs/${organizer.slug}`;
+
   const kpis = [
-    { key: "kpiEvents", Icon: OrganizerIcon, value: `${dashboard.published}` },
-    { key: "kpiSold", Icon: TicketIcon, value: `${dashboard.sold}` },
     {
       key: "kpiRevenue",
       Icon: RevenueIcon,
-      value: formatPriceXaf(dashboard.revenue_xaf),
+      value: formatPriceXaf(balance.revenueXaf),
+      hint: t("kpiRevenueHint"),
+    },
+    {
+      key: "kpiCommissions",
+      Icon: CampaignIcon,
+      value: formatPriceXaf(balance.creatorCommissionsXaf),
+      hint: t("kpiCommissionsHint"),
+    },
+    { key: "kpiSold", Icon: TicketIcon, value: `${dashboard.sold}`, hint: null },
+    {
+      key: "kpiEvents",
+      Icon: OrganizerIcon,
+      value: `${dashboard.published}`,
+      hint: null,
     },
     {
       key: "kpiFollowers",
       Icon: FollowIcon,
       value: `${organizer.followers_count}`,
+      hint: null,
+    },
+    {
+      key: "kpiPlatformFee",
+      Icon: TrendIcon,
+      value: formatPriceXaf(balance.platformFeesXaf),
+      hint: t("kpiPlatformFeeHint", { percent }),
     },
   ] as const;
 
@@ -107,7 +150,60 @@ export default async function OrganizerDashboardPage({
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* Les deux gestes du haut : envoyer sa page à son public, ou
+            ouvrir une nouvelle billetterie. */}
+        <div className="mt-5 flex flex-wrap items-center gap-2.5">
+          <CopyButton
+            value={publicUrl}
+            label={t("copyPublicLink")}
+            className="press font-display inline-flex items-center gap-2 rounded-full border border-paper-line bg-paper-card px-4 py-2.5 text-[13px] font-extrabold hover:border-brand hover:text-brand"
+          >
+            <CopyIcon size={15} strokeWidth={2.2} aria-hidden />
+          </CopyButton>
+          <Link
+            href="/organisateur/evenements/nouveau"
+            className="press grad-ember glow-brand font-display inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-extrabold text-white"
+          >
+            <AddIcon size={15} strokeWidth={2.6} aria-hidden />
+            {tApp("createEvent")}
+          </Link>
+        </div>
+
+        {/* ── Ce qu'il reste, et comment le sortir ─────────────────── */}
+        <section className="sheet mt-6 rounded-sheet p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="flex items-center gap-1.5 text-[12px] text-smoke">
+                <MobileMoneyIcon size={14} strokeWidth={2.2} aria-hidden />
+                {t("availableLabel")}
+              </p>
+              <p className="font-display mt-1 text-[38px] font-extrabold leading-none text-brand-deep">
+                {formatPriceXaf(balance.availableXaf)}
+              </p>
+              <p className="mt-2 max-w-[46ch] text-[12px] text-smoke">
+                {t("availableHint")}
+              </p>
+            </div>
+            <WithdrawForm
+              organizerId={organizer.id}
+              availableXaf={balance.availableXaf}
+              hasPayoutPhone={profile.payout_phone !== null}
+              hasOpenRequest={openRequest !== null}
+            />
+          </div>
+
+          {withdrawals.length > 0 && (
+            <ul className="mt-6 flex flex-col gap-2">
+              {withdrawals.map((withdrawal) => (
+                <li key={withdrawal.id}>
+                  <WithdrawalRow withdrawal={withdrawal} locale={activeLocale} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
           {kpis.map((kpi) => (
             <div key={kpi.key} className="sheet rounded-card p-4">
               <div className="flex items-center gap-1.5 text-[12px] text-smoke">
@@ -117,6 +213,9 @@ export default async function OrganizerDashboardPage({
               <div className="font-display mt-2 text-[22px] font-extrabold">
                 {kpi.value}
               </div>
+              {kpi.hint && (
+                <div className="mt-1 text-[11px] text-smoke">{kpi.hint}</div>
+              )}
             </div>
           ))}
         </div>
@@ -125,24 +224,15 @@ export default async function OrganizerDashboardPage({
           <h2 className="font-display text-[17px] font-extrabold">
             {tApp("myEvents")}
           </h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/organisateur/campagnes"
-              className="press font-display inline-flex items-center gap-1.5 rounded-full border border-paper-line bg-paper-card px-4 py-2.5 text-[13px] font-extrabold hover:border-brand hover:text-brand"
-            >
-              <CampaignIcon size={15} strokeWidth={2.2} aria-hidden />
-              {tApp("campaigns")}
-            </Link>
-            {/* Créer un événement est l'action de la page : elle porte la
-                braise, ici comme dans l'espace sombre. */}
-            <Link
-              href="/organisateur/evenements/nouveau"
-              className="press grad-ember glow-brand font-display inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-extrabold text-white"
-            >
-              <AddIcon size={15} strokeWidth={2.6} aria-hidden />
-              {tApp("createEvent")}
-            </Link>
-          </div>
+          {/* Créer un événement a rejoint le haut de page, avec le lien
+              public : les deux gestes d'ouverture se tiennent ensemble. */}
+          <Link
+            href="/organisateur/campagnes"
+            className="press font-display inline-flex items-center gap-1.5 rounded-full border border-paper-line bg-paper-card px-4 py-2.5 text-[13px] font-extrabold hover:border-brand hover:text-brand"
+          >
+            <CampaignIcon size={15} strokeWidth={2.2} aria-hidden />
+            {tApp("campaigns")}
+          </Link>
         </div>
 
         {events.length === 0 ? (
@@ -229,5 +319,54 @@ export default async function OrganizerDashboardPage({
         )}
       </div>
     </main>
+  );
+}
+
+const WITHDRAWAL_KEY: Record<Withdrawal["status"], string> = {
+  requested: "statusRequested",
+  paid: "statusPaid",
+  rejected: "statusRejected",
+};
+
+const WITHDRAWAL_STYLE: Record<Withdrawal["status"], string> = {
+  requested: "text-warning",
+  paid: "text-success",
+  rejected: "text-danger",
+};
+
+/**
+ * Une ligne d'historique de retrait.
+ *
+ * La date affichée est celle du règlement quand il a eu lieu, celle de
+ * la demande sinon : c'est la dernière chose qui s'est passée sur cette
+ * ligne qui intéresse.
+ */
+async function WithdrawalRow({
+  withdrawal,
+  locale,
+}: {
+  withdrawal: Withdrawal;
+  locale: Locale;
+}) {
+  const t = await getTranslations("money");
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-paper-line bg-paper px-4 py-3 text-[12px]">
+      <span className="font-mono text-smoke">{withdrawal.reference}</span>
+      <span className="font-display flex-1 text-[14px] font-extrabold">
+        {formatPriceXaf(withdrawal.amountXaf)}
+      </span>
+      <span
+        className={`flex items-center gap-1 font-semibold ${WITHDRAWAL_STYLE[withdrawal.status]}`}
+      >
+        {withdrawal.status === "requested" && (
+          <PendingIcon size={13} strokeWidth={2.2} aria-hidden />
+        )}
+        {t(WITHDRAWAL_KEY[withdrawal.status])}
+      </span>
+      <span className="w-full text-[11px] text-smoke">
+        {formatEventDateShort(withdrawal.settledAt ?? withdrawal.createdAt, locale)}
+      </span>
+    </div>
   );
 }

@@ -357,7 +357,13 @@
     "posterReplace": "Change image",
     "posterUploading": "Uploading…",
     "posterReady": "Poster uploaded ✓",
-    "posterRemove": "Remove"
+    "posterRemove": "Remove",
+    "kpiRevenueHint": "Sales collected",
+    "kpiCommissions": "Creator commissions",
+    "kpiCommissionsHint": "Owed to your relays",
+    "kpiPlatformFee": "SPOT fee",
+    "kpiPlatformFeeHint": "Already retained · {percent}% of sales",
+    "copyPublicLink": "Copy my events link"
   },
   "affiliation": {
     "newCampaign": "New campaign",
@@ -442,7 +448,10 @@
       "notOwner": "This campaign is not yours.",
       "payoutFailed": "The payout did not go through. The amount is still owed, you can retry.",
       "unavailable": "Cannot do that right now. Try again in a moment."
-    }
+    },
+    "openLabel": "Open to the creator catalogue",
+    "openHint": "The campaign becomes visible to every creator, who can join on their own. Otherwise it's only joinable through the link you send.",
+    "payoutAsked": "Payout requested"
   },
   "nav": {
     "label": "Main navigation"
@@ -721,5 +730,96 @@
     },
     "alreadyYours": "This ticket is already yours.",
     "eventOver": "This event is over."
+  },
+  "money": {
+    "availableLabel": "Available to withdraw",
+    "availableHint": "What's left once the SPOT fee is taken and what you owe your creators is set aside. SPOT pays out by hand to your Mobile Money number.",
+    "withdraw": "Withdraw {amount}",
+    "requesting": "Sending…",
+    "requestPending": "Request pending. SPOT pays out to your Mobile Money number, then the row turns to “Paid”.",
+    "nothingToWithdrawHint": "Nothing to withdraw yet — paid sales are what feeds this balance.",
+    "noPayoutPhoneOrganizer": "First tell us which Mobile Money number should receive the money.",
+    "noPayoutPhoneCreator": "Add your Mobile Money number above before requesting a payout.",
+    "withdrawalRequested": "Request recorded. The payout goes to your Mobile Money number.",
+    "payoutRequested": "Request sent to the organizer.",
+    "payoutRequestPending": "Payout requested — the organizer sees it in their campaigns.",
+    "requestPayout": "Request {amount}",
+    "statusRequested": "Pending",
+    "statusPaid": "Paid",
+    "statusRejected": "Declined",
+    "browseCampaigns": "Browse campaigns",
+    "myCreatorProfile": "My profile",
+    "followersDeclared": "{count} declared followers",
+    "errors": {
+      "unavailable": "Service unavailable. Try again in a moment.",
+      "notOwner": "This space isn't yours.",
+      "noPayoutPhone": "No Mobile Money number on file.",
+      "unknownOperator": "That number is neither MTN nor Orange: money can't be sent to it.",
+      "alreadyRequested": "A request is already pending.",
+      "nothingToWithdraw": "Nothing to withdraw right now.",
+      "notInCampaign": "You're not part of this campaign."
+    },
+    "markPaid": "Mark as paid",
+    "markRejected": "Decline",
+    "settled": "Request settled.",
+    "alreadySettled": "That request was already settled.",
+    "backToAdmin": "Back to administration",
+    "adminTitle": "Withdrawals",
+    "adminHint": "Send the money from SPOT's Mobile Money account first, then mark the row. Marking before sending would reopen a balance for someone who received nothing.",
+    "adminOpen": "To settle ({count})",
+    "adminNothingOpen": "No pending request.",
+    "adminHistory": "History",
+    "kindOrganizer": "Organizer",
+    "kindCreator": "Creator",
+    "mtn": "MTN MoMo",
+    "orange": "Orange Money"
+  },
+  "catalog": {
+    "title": "Open campaigns",
+    "lede": "Campaigns organizers have opened to every creator. Pick one, grab your link, share it.",
+    "empty": "No open campaigns yet",
+    "emptyHint": "Organizers open their campaigns when they're looking for relays. Check back later, or ask them for an invitation link.",
+    "join": "Join",
+    "joined": "Already joined",
+    "ownEvent": "Your own event — you don't earn commission on your own sales."
+  },
+  "creatorProfile": {
+    "title": "My creator profile",
+    "lede": "Your calling card: it's what an organizer looks at before handing you their event.",
+    "totalFollowers": "Declared audience",
+    "declaredHint": "These numbers are the ones you declare. SPOT doesn't measure them and queries no network: organizers read them as a statement, not a metric.",
+    "cardTitle": "Who you are",
+    "cardHint": "A handle, a name, a city, two sentences. The rest is your numbers.",
+    "handleLabel": "Handle",
+    "handleHint": "3 to 24 characters: unaccented letters, digits and underscore.",
+    "nameLabel": "Display name",
+    "cityLabel": "City",
+    "bioLabel": "About you",
+    "bioPlaceholder": "What you do, who for, and why it works.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Profile saved.",
+    "socialSaved": "Network saved.",
+    "networkLabel": "Network",
+    "socialHandleLabel": "Account",
+    "followersLabel": "Followers",
+    "addNetwork": "Save network",
+    "removeNetwork": "Remove this network",
+    "networks": {
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "x": "X",
+      "snapchat": "Snapchat",
+      "whatsapp": "WhatsApp"
+    },
+    "errors": {
+      "invalid": "Check the handle and display name.",
+      "handleTaken": "That handle is taken.",
+      "invalidSocial": "Check the account and follower count.",
+      "profileFirst": "Fill in your calling card first.",
+      "unavailable": "Service unavailable. Try again in a moment."
+    }
   }
 }

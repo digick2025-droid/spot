@@ -6,24 +6,43 @@ import { updatePayoutPhone } from "@/lib/db/payout-actions";
 import { initialPayoutState } from "@/lib/db/payout-state";
 
 /**
- * Numéro sur lequel le creator veut recevoir ses commissions.
+ * Numéro sur lequel on veut recevoir son argent.
  *
- * Tant qu'il est vide, l'organisateur ne peut rien envoyer : les
- * commissions restent dues, elles ne se perdent pas.
+ * Le même champ sert au creator et à l'organisateur : c'est la même
+ * colonne (profiles.payout_phone), et la même règle — tant qu'il est
+ * vide, rien ne peut partir. Les sommes restent dues, elles ne se
+ * perdent pas.
+ *
+ * Deux habillages, parce que le formulaire vit dans deux mondes : la
+ * nuit de l'espace creator, le papier de l'espace organisateur.
  */
-export function PayoutPhoneForm({ phone }: { phone: string }) {
+export function PayoutPhoneForm({
+  phone,
+  tone = "night",
+}: {
+  phone: string;
+  tone?: "night" | "paper";
+}) {
   const t = useTranslations("affiliation");
   const [state, action, pending] = useActionState(
     updatePayoutPhone,
     initialPayoutState
   );
 
+  const field =
+    tone === "paper"
+      ? "rounded-2xl border border-paper-line bg-paper-card px-4 py-3.5 text-[15px] text-ink placeholder:text-smoke focus:border-brand focus:outline-none"
+      : "rounded-2xl bg-ink px-4 py-3.5 text-[15px] text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand";
+
+  const label =
+    tone === "paper"
+      ? "text-[13px] font-semibold text-smoke"
+      : "text-[13px] font-semibold text-fog";
+
   return (
     <form action={action} className="mt-4 flex flex-col gap-3">
       <label className="flex flex-col gap-2">
-        <span className="text-[13px] font-semibold text-fog">
-          {t("payoutPhoneLabel")}
-        </span>
+        <span className={label}>{t("payoutPhoneLabel")}</span>
         <input
           name="phone"
           type="tel"
@@ -33,7 +52,7 @@ export function PayoutPhoneForm({ phone }: { phone: string }) {
           defaultValue={phone}
           placeholder="+237 6 71 23 45 67"
           aria-describedby="payout-phone-hint"
-          className="rounded-2xl bg-ink px-4 py-3.5 text-[15px] text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand"
+          className={field}
         />
         <span id="payout-phone-hint" className="text-[12px] text-smoke">
           {t("payoutPhoneHint")}

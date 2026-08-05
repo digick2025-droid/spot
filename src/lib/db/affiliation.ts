@@ -79,6 +79,8 @@ export type CampaignCreator = {
    * pas à connaître la destination.
    */
   hasPayoutPhone: boolean;
+  /** Vrai quand le creator a demandé son versement et attend. */
+  requestedPayout: boolean;
 };
 
 /** Un ordre de versement, vu par l'organisateur qui l'a déclenché. */
@@ -228,13 +230,14 @@ export async function getOrganizerCampaigns(): Promise<OrganizerCampaign[] | nul
   const campaignIds = campaignRows.map((c) => c.id);
   const linkIds = campaignRows.flatMap((c) => c.creator_links.map((l) => l.id));
 
-  const [commissions, orders, creators, payouts] = await Promise.all([
+  const [commissions, orders, creators, payouts, requests] = await Promise.all([
     readCommissionsByLink({ campaignIds }),
     readTicketsByLink(linkIds),
     readCreatorProfiles(
       campaignRows.flatMap((c) => c.creator_links.map((l) => l.creator_id))
     ),
     readPayoutsByCampaign(campaignIds),
+    readOpenCreatorRequests(campaignIds),
   ]);
 
   return campaignRows
@@ -258,6 +261,7 @@ export async function getOrganizerCampaigns(): Promise<OrganizerCampaign[] | nul
           pendingXaf: totals.pendingXaf,
           paidXaf: totals.paidXaf,
           hasPayoutPhone: profile?.hasPayoutPhone ?? false,
+          requestedPayout: requests.has(`${row.id}:${link.creator_id}`),
         };
       });
 
@@ -569,6 +573,33 @@ async function readTicketsByLink(linkIds: string[]): Promise<Map<string, number>
   if (error) throw new Error(`Lecture des ventes impossible : ${error.message}`);
 
   return new Map((data ?? []).map((row) => [row.creator_link_id, row.tickets]));
+}
+
+/**
+ * Creators qui ont demandé leur versement et attendent.
+ *
+ * withdrawals_select_campaign_owner ouvre ces lignes à l'organisateur :
+ * la demande lui est adressée, c'est lui qui verse. La clé associe la
+ * campagne au creator — un même creator peut attendre sur l'une et pas
+ * sur l'autre.
+ */
+async function readOpenCreatorRequests(
+  campaignIds: string[]
+): Promise<Set<string>> {
+  if (campaignIds.length === 0) return new Set();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("withdrawals")
+    .select("campaign_id, user_id")
+    .in("campaign_id", campaignIds)
+    .eq("kind", "creator")
+    .eq("status", "requested")
+    .overrideTypes<{ campaign_id: string; user_id: string }[], { merge: false }>();
+
+  if (error) throw new Error(`Lecture des demandes impossible : ${error.message}`);
+
+  return new Set((data ?? []).map((row) => `${row.campaign_id}:${row.user_id}`));
 }
 
 /**

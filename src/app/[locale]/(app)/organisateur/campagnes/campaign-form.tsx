@@ -89,6 +89,23 @@ export function CampaignForm({
         </label>
       </div>
 
+      {/* Ouvrir ne donne aucun droit d'écriture : cela rend seulement la
+          campagne visible dans le catalogue des creators. Fermée par
+          défaut — c'est l'organisateur qui décide qui porte son nom. */}
+      <label className="flex items-start gap-3 rounded-2xl border border-paper-line bg-paper-card p-4">
+        <input
+          type="checkbox"
+          name="open"
+          className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+        />
+        <span>
+          <span className="block text-[14px] font-bold">{t("openLabel")}</span>
+          <span className="mt-1 block text-[12px] text-smoke">
+            {t("openHint")}
+          </span>
+        </span>
+      </label>
+
       {state.error && (
         <p
           role="alert"

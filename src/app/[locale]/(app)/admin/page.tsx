@@ -3,6 +3,7 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { MobileMoneyIcon } from "@/components/icons";
 import { requireAdmin } from "@/lib/auth/dal";
 import {
   ADMIN_TABS,
@@ -68,6 +69,7 @@ export default async function AdminPage({
 
   const activeLocale = (await getLocale()) as Locale;
   const t = await getTranslations("admin");
+  const tMoney = await getTranslations("money");
 
   const [kpis, table] = await Promise.all([
     getAdminKpis(),
@@ -84,9 +86,20 @@ export default async function AdminPage({
   return (
     <main className="theme-paper flex-1 bg-paper text-ink">
       <div className="mx-auto w-full max-w-5xl px-5 pb-10 pt-6 sm:px-6">
-        <h1 className="font-display text-[22px] font-extrabold uppercase">
-          {t("title")}
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="font-display text-[22px] font-extrabold uppercase">
+            {t("title")}
+          </h1>
+          {/* La seule porte de sortie vers un écran qui écrit : les
+              retraits attendent un geste humain, la console non. */}
+          <Link
+            href="/admin/retraits"
+            className="press font-display inline-flex items-center gap-1.5 rounded-full border border-paper-line bg-paper-card px-4 py-2.5 text-[13px] font-extrabold hover:border-brand hover:text-brand"
+          >
+            <MobileMoneyIcon size={15} strokeWidth={2.2} aria-hidden />
+            {tMoney("adminTitle")}
+          </Link>
+        </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {cards.map((card) => (

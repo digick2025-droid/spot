@@ -28,6 +28,9 @@ const campaignSchema = z.object({
   name: z.string().trim().min(2).max(80),
   kind: z.enum(["percent", "fixed"]),
   value: z.coerce.number().int().min(0).max(10_000_000),
+  // Une case non cochée n'arrive pas dans le FormData : l'absence vaut
+  // « fermée », qui est aussi le défaut en base.
+  open: z.union([z.literal("on"), z.null()]).transform((v) => v === "on"),
 });
 
 /** Ouvre une campagne sur un événement de l'organisateur courant. */
@@ -43,6 +46,7 @@ export async function createCampaign(
     name: formData.get("name"),
     kind: formData.get("kind"),
     value: formData.get("value"),
+    open: formData.get("open"),
   });
   if (!parsed.success) return { error: t("errors.invalidCampaign") };
 
@@ -59,6 +63,7 @@ export async function createCampaign(
     name: parsed.data.name,
     commission_kind: parsed.data.kind,
     commission_value: parsed.data.value,
+    open_to_creators: parsed.data.open,
   });
 
   if (error) {

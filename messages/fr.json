@@ -357,7 +357,13 @@
     "posterReplace": "Changer d'image",
     "posterUploading": "Import en cours…",
     "posterReady": "Affiche importée ✓",
-    "posterRemove": "Retirer"
+    "posterRemove": "Retirer",
+    "kpiRevenueHint": "Ventes encaissées",
+    "kpiCommissions": "Commissions creators",
+    "kpiCommissionsHint": "Promises à vos relais",
+    "kpiPlatformFee": "Commission SPOT",
+    "kpiPlatformFeeHint": "Déjà retenue · {percent} % des ventes",
+    "copyPublicLink": "Copier le lien de mes événements"
   },
   "affiliation": {
     "newCampaign": "Nouvelle campagne",
@@ -442,7 +448,10 @@
       "notOwner": "Cette campagne n'est pas la tienne.",
       "payoutFailed": "Le versement n'est pas parti. La somme reste due, tu peux réessayer.",
       "unavailable": "Action impossible pour le moment. Réessaie dans un instant."
-    }
+    },
+    "openLabel": "Ouvrir au catalogue des creators",
+    "openHint": "La campagne devient visible par tous les creators, qui peuvent la rejoindre seuls. Sinon, elle ne se rejoint que par le lien que vous envoyez.",
+    "payoutAsked": "Versement demandé"
   },
   "nav": {
     "label": "Navigation principale"
@@ -721,5 +730,96 @@
     },
     "alreadyYours": "Ce billet est déjà à toi.",
     "eventOver": "Cet événement est terminé."
+  },
+  "money": {
+    "availableLabel": "Solde retirable",
+    "availableHint": "Ce qui reste une fois la commission SPOT retenue et ce qui est promis à vos creators mis de côté. Le versement est fait à la main par SPOT sur votre numéro Mobile Money.",
+    "withdraw": "Retirer {amount}",
+    "requesting": "Envoi…",
+    "requestPending": "Demande en cours. SPOT verse sur votre numéro Mobile Money, puis la ligne passe à « Versé ».",
+    "nothingToWithdrawHint": "Rien à retirer pour l'instant : ce sont les ventes encaissées qui alimentent ce solde.",
+    "noPayoutPhoneOrganizer": "Indiquez d'abord le numéro Mobile Money qui recevra l'argent.",
+    "noPayoutPhoneCreator": "Indiquez votre numéro Mobile Money ci-dessus pour pouvoir demander votre versement.",
+    "withdrawalRequested": "Demande enregistrée. Le versement part sur votre numéro Mobile Money.",
+    "payoutRequested": "Demande envoyée à l'organisateur.",
+    "payoutRequestPending": "Versement demandé — l'organisateur le voit dans ses campagnes.",
+    "requestPayout": "Demander {amount}",
+    "statusRequested": "En attente",
+    "statusPaid": "Versé",
+    "statusRejected": "Refusé",
+    "browseCampaigns": "Voir les campagnes",
+    "myCreatorProfile": "Mon profil",
+    "followersDeclared": "{count} abonnés déclarés",
+    "errors": {
+      "unavailable": "Service indisponible. Réessayez dans un instant.",
+      "notOwner": "Cet espace n'est pas le vôtre.",
+      "noPayoutPhone": "Aucun numéro Mobile Money enregistré.",
+      "unknownOperator": "Ce numéro n'est ni MTN ni Orange : impossible d'y envoyer de l'argent.",
+      "alreadyRequested": "Une demande est déjà en cours.",
+      "nothingToWithdraw": "Rien à retirer pour l'instant.",
+      "notInCampaign": "Vous ne participez pas à cette campagne."
+    },
+    "markPaid": "Marquer versé",
+    "markRejected": "Refuser",
+    "settled": "Demande réglée.",
+    "alreadySettled": "Cette demande était déjà réglée.",
+    "backToAdmin": "Retour à l'administration",
+    "adminTitle": "Retraits",
+    "adminHint": "Envoyez d'abord l'argent depuis le compte Mobile Money de SPOT, puis marquez la ligne. Marquer avant d'envoyer rouvrirait un solde au bénéficiaire sans qu'il ait rien reçu.",
+    "adminOpen": "À régler ({count})",
+    "adminNothingOpen": "Aucune demande en attente.",
+    "adminHistory": "Historique",
+    "kindOrganizer": "Organisateur",
+    "kindCreator": "Creator",
+    "mtn": "MTN MoMo",
+    "orange": "Orange Money"
+  },
+  "catalog": {
+    "title": "Campagnes ouvertes",
+    "lede": "Les campagnes que les organisateurs ont ouvertes à tous les creators. Choisissez, prenez votre lien, partagez.",
+    "empty": "Aucune campagne ouverte pour l'instant",
+    "emptyHint": "Les organisateurs ouvrent leurs campagnes quand ils cherchent des relais. Revenez plus tard, ou demandez-leur un lien d'invitation.",
+    "join": "Rejoindre",
+    "joined": "Déjà rejointe",
+    "ownEvent": "Votre événement — on ne se commissionne pas sur ses propres ventes."
+  },
+  "creatorProfile": {
+    "title": "Mon profil creator",
+    "lede": "Votre carte de visite : c'est ce qu'un organisateur regarde avant de vous confier son événement.",
+    "totalFollowers": "Audience déclarée",
+    "declaredHint": "Ces chiffres sont ceux que vous déclarez. SPOT ne les mesure pas et n'interroge aucun réseau : un organisateur les lit comme une déclaration.",
+    "cardTitle": "Qui vous êtes",
+    "cardHint": "Un pseudo, un nom, une ville, deux phrases. Le reste, ce sont vos chiffres.",
+    "handleLabel": "Pseudo",
+    "handleHint": "3 à 24 caractères : lettres sans accent, chiffres et tiret bas.",
+    "nameLabel": "Nom affiché",
+    "cityLabel": "Ville",
+    "bioLabel": "Présentation",
+    "bioPlaceholder": "Ce que vous faites, pour qui, et pourquoi ça marche.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Profil enregistré.",
+    "socialSaved": "Réseau enregistré.",
+    "networkLabel": "Réseau",
+    "socialHandleLabel": "Compte",
+    "followersLabel": "Abonnés",
+    "addNetwork": "Enregistrer le réseau",
+    "removeNetwork": "Retirer ce réseau",
+    "networks": {
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "x": "X",
+      "snapchat": "Snapchat",
+      "whatsapp": "WhatsApp"
+    },
+    "errors": {
+      "invalid": "Vérifiez le pseudo et le nom affiché.",
+      "handleTaken": "Ce pseudo est déjà pris.",
+      "invalidSocial": "Vérifiez le compte et le nombre d'abonnés.",
+      "profileFirst": "Remplissez d'abord votre carte de visite.",
+      "unavailable": "Service indisponible. Réessayez dans un instant."
+    }
   }
 }

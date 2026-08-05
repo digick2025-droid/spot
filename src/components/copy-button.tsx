@@ -13,9 +13,15 @@ import { useTranslations } from "next-intl";
 export function CopyButton({
   value,
   className,
+  label,
+  children,
 }: {
   value: string;
   className?: string;
+  /** Libellé au repos. Par défaut « Copier » — suffisant à côté du texte copié. */
+  label?: string;
+  /** Icône, ou tout ce qui précède le libellé. */
+  children?: React.ReactNode;
 }) {
   const t = useTranslations("app");
   const [copied, setCopied] = useState(false);
@@ -32,7 +38,8 @@ export function CopyButton({
 
   return (
     <button type="button" onClick={copy} className={className}>
-      {copied ? t("copied") : t("copy")}
+      {children}
+      {copied ? t("copied") : (label ?? t("copy"))}
     </button>
   );
 }

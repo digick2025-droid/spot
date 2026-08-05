@@ -16,9 +16,15 @@ export type Profile = {
   phone: string | null;
   role: UserRole;
   locale: Locale;
+  /**
+   * Numéro Mobile Money de destination des versements. Distinct de
+   * `phone`, qui est un contact : on n'envoie pas de l'argent sur un
+   * numéro saisi pour tout autre chose.
+   */
+  payout_phone: string | null;
 };
 
-const PROFILE_COLUMNS = "id, email, full_name, phone, role, locale";
+const PROFILE_COLUMNS = "id, email, full_name, phone, role, locale, payout_phone";
 
 /**
  * Couche d'accès aux données.

@@ -69,6 +69,26 @@ Les deux groupes de routes ont chacun leur coque : `(site)` porte l'en-tête et 
 
 **Vignettes de partage** — dessinées avec `ImageResponse`, comme les icônes : `src/app/opengraph-image.tsx` pour la marque, `…/evenements/[slug]/opengraph-image.tsx` pour chaque événement (titre, date, lieu, prix, et l'affiche en fond quand elle existe). Ces routes n'ont pas d'extension : elles sont **exclues du matcher de `src/proxy.ts`**, faute de quoi next-intl les préfixerait d'une locale et WhatsApp comme Facebook recevraient une redirection ou un 404. `NEXT_PUBLIC_SITE_URL` fixe la base des URL absolues.
 
+## L'argent : qui encaisse, qui doit, qui retire
+
+Tout est encaissé sur le compte agrégateur de SPOT. Une commande payée produit donc, dans la même transaction que l'émission des billets (`spot.mark_order_paid`) : les points du SPOT PASS, la commission du creator quand la vente vient d'un lien de promo, et **les frais de plateforme**.
+
+**Commission SPOT** — un pourcentage prélevé sur chaque commande encaissée. Le taux vit dans `spot.settings` (`platform_commission_percent`, 5 par défaut) pour que l'admin l'ajuste sans redéploiement, et il est **figé** dans `spot.platform_fees` au moment de l'encaissement, avec sa base et son taux. Le relever demain ne réécrit donc pas ce que les organisateurs doivent aujourd'hui.
+
+**Solde d'un organisateur** = ventes encaissées − frais de plateforme − commissions creators (dues ou déjà versées, il ne les reverra pas) − retraits payés ou réservés par une demande en cours. Le calcul vit en base (`spot.organizer_balance`, doublée d'une version sans contrôle d'accès dans `spot_private` pour les fonctions qui écrivent) : l'additionner en TypeScript demanderait de lire toutes les commandes, que PostgREST tronque à 1000 lignes sans le dire.
+
+**Retrait** — le bouton n'envoie pas d'argent. Il inscrit une demande (`spot.withdrawals`), SPOT verse à la main depuis son compte Mobile Money, puis un admin marque la ligne dans `/admin/retraits`. C'est l'arbitrage retenu tant que l'adaptateur Campay n'a pas été confronté à un vrai compte marchand : un bouton qui promet un virement immédiat sans pouvoir le tenir est pire qu'un formulaire. Le montant n'est jamais transmis par le formulaire — la fonction le recalcule sous verrou, et un index partiel n'autorise qu'une demande ouverte à la fois, ce qui rend le bouton idempotent.
+
+**Côté creator**, la demande n'est pas un retrait : c'est un signal adressé à l'organisateur, seul à ordonner le paiement de ce qu'il doit (`spot.open_payout`, inchangé). Elle apparaît en pastille sur la ligne du creator dans les campagnes, et se ferme d'elle-même quand le versement s'ouvre — par déclencheur sur `spot.payouts`, pour que le chemin de l'argent n'ait pas à bouger.
+
+## Creators : catalogue et carte de visite
+
+**Catalogue** — `campaigns.open_to_creators` ne change pas qui peut rejoindre une campagne, mais qui peut la **trouver**. Ouverte, elle apparaît dans `/creator/campagnes` et n'importe quel creator la rejoint seul ; fermée (le défaut), elle ne se rejoint que par le lien d'invitation, l'identifiant de campagne tenant lieu d'invitation comme avant. L'adhésion emprunte exactement le même chemin dans les deux cas.
+
+**Carte de visite** — `spot.creator_profiles` (pseudo, nom, ville, bio) et `spot.creator_socials` (un réseau, un compte, un nombre d'abonnés). C'est ce qu'un organisateur regarde avant de confier son événement, donc lisible par tout compte connecté ; rien de personnel n'y entre — e-mail, téléphone et numéro de versement restent dans `spot.profiles` sous la RLS du propriétaire. Le badge « vérifié » ne se donne pas soi-même : un déclencheur le remet à sa valeur précédente pour qui n'est pas admin.
+
+Les **nombres d'abonnés sont déclarés**, jamais mesurés : SPOT n'est branché à aucune API de réseau social. Les écrans le disent, et doivent continuer de le dire tant que ce sera vrai — un organisateur qui choisit sur la foi de ces chiffres doit savoir d'où ils viennent.
+
 ## Billets offerts
 
 Offrir n'est pas payer pour quelqu'un d'autre. Le billet **naît au nom de l'acheteur** et porte un code de réclamation : l'acheteur le voit dans ses billets, peut renvoyer le lien, et le garde si personne ne le réclame. Qui ouvre `/cadeau/<code>` et réclame en devient le porteur — l'écriture passe par `spot.claim_gift_ticket`, sous verrou, pour que deux ouvertures simultanées du même lien ne fassent pas deux porteurs.

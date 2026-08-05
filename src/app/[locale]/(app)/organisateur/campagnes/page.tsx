@@ -233,8 +233,17 @@ async function CampaignCard({
                 {creator.name.slice(0, 1).toUpperCase()}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-bold">
-                  {creator.name}
+                <span className="flex items-center gap-2">
+                  <span className="truncate text-[13px] font-bold">
+                    {creator.name}
+                  </span>
+                  {/* Il a demandé, il attend : la pastille dit qu'il y a
+                      quelqu'un au bout du bouton « Verser ». */}
+                  {creator.requestedPayout && (
+                    <span className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-[10.5px] font-bold text-warning">
+                      {t("payoutAsked")}
+                    </span>
+                  )}
                 </span>
                 <span className="block text-[11px] text-smoke">
                   {creator.clicks} {tApp("clicks").toLowerCase()} ·{" "}
