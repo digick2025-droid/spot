@@ -196,7 +196,8 @@
       "invalidPhone": "Invalid number: 9 digits starting with 6 expected.",
       "channelMismatch": "That is a {operator} number. Pick the matching operator.",
       "unavailable": "Payment is unavailable right now. Please try again shortly.",
-      "notFound": "Order not found."
+      "notFound": "Order not found.",
+      "giftRecipient": "Enter the first name of the person you are gifting this ticket to."
     }
   },
   "tickets": {
@@ -687,5 +688,38 @@
       "rule2Note": "Every payout is traced, with its status — pending, paid, or failed and to be retried.",
       "ctaFinal": "Join a campaign"
     }
+  },
+  "gift": {
+    "tabBuy": "Buy",
+    "tabGift": "Gift",
+    "pickerHint": "You pay now, they get a link to open. The ticket stays in your name until they claim it.",
+    "recipientLabel": "Who is it for?",
+    "recipientPlaceholder": "Their first name",
+    "messageLabel": "A word to go with it (optional)",
+    "messagePlaceholder": "Happy birthday — see you there!",
+    "offeredTo": "Gifted to {name}",
+    "waiting": "Waiting",
+    "claimedTag": "Claimed",
+    "shareTitle": "Send the gift",
+    "shareHint": "One link per gifted seat. Until someone claims it, the ticket stays in your tickets.",
+    "shareWhatsApp": "Send on WhatsApp",
+    "shareCopy": "Copy link",
+    "whatsappText": "I am giving you a seat for {event} 🎟 Claim it here:",
+    "claimTitle": "A seat is waiting for you",
+    "claimFrom": "From {name}",
+    "claimFromAnonymous": "A gift is waiting for you",
+    "claimForYou": "For {name}",
+    "claimCta": "Claim my ticket",
+    "claimSignIn": "Sign in to claim",
+    "claiming": "Claiming…",
+    "seeMyTicket": "See my ticket",
+    "errors": {
+      "GIFT_NOT_FOUND": "This gift does not exist, or the link is incomplete.",
+      "GIFT_ALREADY_CLAIMED": "Someone else has already claimed this ticket.",
+      "GIFT_NOT_VALID": "This ticket is no longer valid.",
+      "GIFT_FAILED": "Cannot claim right now. Try again in a moment."
+    },
+    "alreadyYours": "This ticket is already yours.",
+    "eventOver": "This event is over."
   }
 }

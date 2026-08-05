@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { submitAuth } from "@/lib/auth/actions";
 import { initialAuthState } from "@/lib/auth/state";
 
-export function OtpForm() {
+export function OtpForm({ next }: { next?: string }) {
   const t = useTranslations("auth");
   const [state, action, pending] = useActionState(submitAuth, initialAuthState);
   const onCodeStep = state.step === "code";
@@ -14,6 +14,10 @@ export function OtpForm() {
     <form action={action} className="mt-8 flex flex-col gap-4">
       {/* Conserve l'adresse entre les deux étapes */}
       {onCodeStep && <input type="hidden" name="email" value={state.email} />}
+
+      {/* D'où l'on vient : un cadeau ouvert dans WhatsApp ramène à son
+          billet, pas à l'accueil. Le serveur revalide la destination. */}
+      {next && <input type="hidden" name="next" value={next} />}
 
       {onCodeStep ? (
         <label className="flex flex-col gap-2">

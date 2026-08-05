@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { AddIcon, RemoveIcon } from "@/components/icons";
+import { AddIcon, GiftIcon, RemoveIcon, TicketIcon } from "@/components/icons";
 import {
   MAX_TICKETS_PER_ORDER,
   MIN_TICKETS_PER_ORDER,
@@ -28,9 +28,18 @@ export function TicketPicker({
   isSignedIn: boolean;
 }) {
   const t = useTranslations("events");
+  const tGift = useTranslations("gift");
   const available = ticketTypes.filter((tt) => tt.remaining > 0);
   const [selectedId, setSelectedId] = useState(available[0]?.id ?? "");
   const [quantity, setQuantity] = useState(MIN_TICKETS_PER_ORDER);
+  /**
+   * Acheter pour soi ou offrir : deux intentions, un seul tunnel. Le
+   * choix ne change ni le prix ni le paiement, seulement le nom qui
+   * portera le billet — c'est donc un onglet, pas un autre écran. Le
+   * destinataire se saisit à l'étape suivante, dans le formulaire posté
+   * au serveur : un prénom n'a rien à faire dans une URL.
+   */
+  const [gift, setGift] = useState(false);
 
   const selected = ticketTypes.find((tt) => tt.id === selectedId);
   // Ne jamais proposer plus de billets qu'il n'en reste réellement.
@@ -47,6 +56,39 @@ export function TicketPicker({
 
   return (
     <div className="mt-4 flex flex-col gap-3">
+      {/* Les deux intentions, côte à côte. */}
+      <div
+        role="group"
+        className="flex gap-1.5 rounded-full bg-surface p-1.5 ring-1 ring-inset ring-white/10"
+      >
+        {[
+          { key: "buy", label: t("buy"), Icon: TicketIcon, on: false },
+          { key: "gift", label: tGift("tabGift"), Icon: GiftIcon, on: true },
+        ].map((tab) => {
+          const active = gift === tab.on;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setGift(tab.on)}
+              aria-pressed={active}
+              className={`press font-display flex flex-1 items-center justify-center gap-1.5 rounded-full py-2.5 text-[13px] font-extrabold transition-colors ${
+                active ? "grad-ember text-white" : "text-mist hover:text-white"
+              }`}
+            >
+              <tab.Icon size={15} strokeWidth={2.4} aria-hidden />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {gift && (
+        <p className="px-1 text-[12px] leading-relaxed text-smoke">
+          {tGift("pickerHint")}
+        </p>
+      )}
+
       {ticketTypes.map((option) => {
         const soldOut = option.remaining <= 0;
         const active = option.id === selectedId;
@@ -138,12 +180,14 @@ export function TicketPicker({
         <form action={`/paiement/${eventSlug}`} method="get">
           <input type="hidden" name="billet" value={selectedId} />
           <input type="hidden" name="quantite" value={quantity} />
+          {gift && <input type="hidden" name="cadeau" value="1" />}
           <button
             type="submit"
             disabled={!selected}
-            className="press grad-ember glow-brand font-display w-full rounded-2xl px-4 py-4 text-[15px] font-extrabold text-white disabled:opacity-50"
+            className="press grad-ember glow-brand font-display flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-[15px] font-extrabold text-white disabled:opacity-50"
           >
-            {t("buy")}
+            {gift && <GiftIcon size={17} strokeWidth={2.4} aria-hidden />}
+            {gift ? tGift("tabGift") : t("buy")}
           </button>
         </form>
       )}

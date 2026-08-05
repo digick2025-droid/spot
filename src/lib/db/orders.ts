@@ -14,6 +14,15 @@ export type CreateOrderInput = {
   phone: string;
   /** Code du lien creator porté par le cookie d'affiliation, s'il y en a un. */
   refCode?: string | null;
+  /**
+   * Le cadeau : à qui, et le mot joint. Null pour un achat ordinaire.
+   *
+   * C'est la présence du nom qui fait le cadeau, ici comme en base :
+   * `mark_order_paid` en déduit qu'il faut tirer un code de réclamation
+   * par billet émis.
+   */
+  giftRecipientName?: string | null;
+  giftMessage?: string | null;
 };
 
 export type CreateOrderResult = {
@@ -170,6 +179,8 @@ export async function createOrder(
       channel: input.channel,
       payer_phone: input.phone,
       creator_link_id: creatorLinkId,
+      gift_recipient_name: input.giftRecipientName ?? null,
+      gift_message: input.giftMessage ?? null,
     })
     .select("id")
     .single();

@@ -2,7 +2,12 @@
 
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { DoneIcon, LoadingIcon, MobileMoneyIcon } from "@/components/icons";
+import {
+  DoneIcon,
+  GiftIcon,
+  LoadingIcon,
+  MobileMoneyIcon,
+} from "@/components/icons";
 import { startPayment } from "@/lib/payments/actions";
 import { initialCheckoutState } from "@/lib/payments/state";
 
@@ -23,14 +28,18 @@ export function CheckoutForm({
   quantity,
   totalLabel,
   defaultPhone,
+  isGift = false,
 }: {
   eventSlug: string;
   ticketTypeId: string;
   quantity: number;
   totalLabel: string;
   defaultPhone: string;
+  /** Vient du sélecteur de billets : on paie pour quelqu'un d'autre. */
+  isGift?: boolean;
 }) {
   const t = useTranslations("checkout");
+  const tGift = useTranslations("gift");
   const [state, action, pending] = useActionState(
     startPayment,
     initialCheckoutState
@@ -43,6 +52,46 @@ export function CheckoutForm({
       <input type="hidden" name="ticketTypeId" value={ticketTypeId} />
       <input type="hidden" name="quantity" value={quantity} />
       <input type="hidden" name="channel" value={channel} />
+      {isGift && <input type="hidden" name="gift" value="1" />}
+
+      {/* Pour qui, et le mot qui va avec. Les deux champs ne partent que
+          si l'on est venu par « Offrir » : ailleurs, ils n'existent pas
+          dans le formulaire, et le serveur ignore leur contenu. */}
+      {isGift && (
+        <fieldset className="sheen rounded-card bg-surface p-4">
+          <legend className="font-display flex items-center gap-1.5 px-1 text-[13px] font-extrabold">
+            <GiftIcon size={15} strokeWidth={2.4} aria-hidden />
+            {tGift("recipientLabel")}
+          </legend>
+
+          <input
+            name="giftRecipientName"
+            required
+            minLength={2}
+            maxLength={80}
+            autoComplete="off"
+            placeholder={tGift("recipientPlaceholder")}
+            className="mt-3 w-full rounded-2xl bg-ink px-4 py-3.5 text-[15px] text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand"
+          />
+
+          <label className="mt-3 block">
+            <span className="text-[12px] font-semibold text-mist">
+              {tGift("messageLabel")}
+            </span>
+            <textarea
+              name="giftMessage"
+              rows={2}
+              maxLength={280}
+              placeholder={tGift("messagePlaceholder")}
+              className="mt-1.5 w-full resize-y rounded-2xl bg-ink px-4 py-3 text-[14px] text-white ring-1 ring-inset ring-white/10 placeholder:text-smoke focus:outline-none focus:ring-brand"
+            />
+          </label>
+
+          <p className="mt-2 px-1 text-[12px] leading-relaxed text-smoke">
+            {tGift("pickerHint")}
+          </p>
+        </fieldset>
+      )}
 
       <fieldset>
         <legend className="text-[13px] font-semibold text-fog">

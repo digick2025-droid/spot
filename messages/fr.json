@@ -196,7 +196,8 @@
       "invalidPhone": "Numéro invalide : 9 chiffres commençant par 6 attendus.",
       "channelMismatch": "Ce numéro est un numéro {operator}. Choisis l'opérateur correspondant.",
       "unavailable": "Le paiement est indisponible pour le moment. Réessaie dans un instant.",
-      "notFound": "Commande introuvable."
+      "notFound": "Commande introuvable.",
+      "giftRecipient": "Indique le prénom de la personne à qui tu offres ce billet."
     }
   },
   "tickets": {
@@ -687,5 +688,38 @@
       "rule2Note": "Chaque versement est tracé, avec son statut — en attente, versé, ou échoué et à relancer.",
       "ctaFinal": "Rejoindre une campagne"
     }
+  },
+  "gift": {
+    "tabBuy": "Acheter",
+    "tabGift": "Offrir",
+    "pickerHint": "Tu paies maintenant, la personne reçoit un lien à ouvrir. Le billet reste à ton nom tant qu'elle ne l'a pas réclamé.",
+    "recipientLabel": "Pour qui ?",
+    "recipientPlaceholder": "Prénom du destinataire",
+    "messageLabel": "Un mot pour l'accompagner (optionnel)",
+    "messagePlaceholder": "Bonne fête, on se retrouve là-bas !",
+    "offeredTo": "Offert à {name}",
+    "waiting": "En attente",
+    "claimedTag": "Réclamé",
+    "shareTitle": "Envoie le cadeau",
+    "shareHint": "Un lien par place offerte. Tant que personne ne le réclame, le billet reste dans tes billets.",
+    "shareWhatsApp": "Envoyer sur WhatsApp",
+    "shareCopy": "Copier le lien",
+    "whatsappText": "Je t'offre une place pour {event} 🎟 Réclame-la ici :",
+    "claimTitle": "On t'offre une place",
+    "claimFrom": "De la part de {name}",
+    "claimFromAnonymous": "Un cadeau t'attend",
+    "claimForYou": "Pour {name}",
+    "claimCta": "Réclamer mon billet",
+    "claimSignIn": "Se connecter pour réclamer",
+    "claiming": "Réclamation…",
+    "seeMyTicket": "Voir mon billet",
+    "errors": {
+      "GIFT_NOT_FOUND": "Ce cadeau n'existe pas, ou le lien est incomplet.",
+      "GIFT_ALREADY_CLAIMED": "Ce billet a déjà été réclamé par quelqu'un d'autre.",
+      "GIFT_NOT_VALID": "Ce billet n'est plus valide.",
+      "GIFT_FAILED": "Réclamation impossible pour l'instant. Réessaie dans un instant."
+    },
+    "alreadyYours": "Ce billet est déjà à toi.",
+    "eventOver": "Cet événement est terminé."
   }
 }

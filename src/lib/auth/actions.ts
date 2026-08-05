@@ -13,6 +13,20 @@ const codeSchema = z
   .trim()
   .regex(/^\d{6}$/);
 
+/**
+ * Où reprendre après la connexion.
+ *
+ * Une seule barre oblique en tête, et rien qui ressemble à une adresse
+ * absolue : `//ailleurs.example` serait un lien externe pour le
+ * navigateur, et suffirait à faire de notre page de connexion un
+ * tremplin. Tout ce qui n'est pas un chemin interne devient l'accueil.
+ */
+function safeNext(raw: FormDataEntryValue | null): string {
+  const value = typeof raw === "string" ? raw.trim() : "";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/accueil";
+  return value;
+}
+
 /** Étape 1 — envoi du code à usage unique par e-mail. */
 export async function requestOtp(
   _state: AuthState,
@@ -90,7 +104,7 @@ export async function verifyOtp(
   // redirect() lève une exception de contrôle de flux : rien ne s'exécute
   // après, et elle ne doit pas être avalée par un try/catch. On retourne
   // son résultat (`never`) pour que TypeScript voie bien la sortie.
-  return redirect({ href: "/accueil", locale });
+  return redirect({ href: safeNext(formData.get("next")), locale });
 }
 
 /** Renvoi d'un nouveau code. */

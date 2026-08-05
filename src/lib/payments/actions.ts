@@ -20,6 +20,15 @@ const schema = z.object({
   quantity: z.coerce.number().int(),
   channel: z.enum(["mtn_momo", "orange_money"]),
   phone: z.string().min(6),
+  /**
+   * Le cadeau : à qui, et le mot qui l'accompagne.
+   *
+   * Le prénom du destinataire ne circule jamais en paramètre d'URL — il
+   * n'est saisi qu'ici, dans le formulaire posté au serveur. Vide vaut
+   * absent : un champ laissé blanc fait une commande ordinaire.
+   */
+  giftRecipientName: z.string().trim().max(80).optional(),
+  giftMessage: z.string().trim().max(280).optional(),
 });
 
 /**
@@ -42,10 +51,20 @@ export async function startPayment(
     quantity: formData.get("quantity"),
     channel: formData.get("channel"),
     phone: formData.get("phone"),
+    giftRecipientName: formData.get("giftRecipientName") ?? undefined,
+    giftMessage: formData.get("giftMessage") ?? undefined,
   });
 
   if (!parsed.success) {
     return { error: t("errors.invalidForm") };
+  }
+
+  // Offrir sans dire à qui laisserait un billet cadeau anonyme, que
+  // personne ne saurait réclamer ni relancer.
+  const isGift = formData.get("gift") === "1";
+  const giftRecipientName = parsed.data.giftRecipientName || "";
+  if (isGift && giftRecipientName.length < 2) {
+    return { error: t("errors.giftRecipient") };
   }
 
   let phone: string;
@@ -78,6 +97,8 @@ export async function startPayment(
       // Le code d'affiliation ne transite pas par le formulaire : il est
       // lu ici dans son cookie httpOnly, puis revalidé par createOrder.
       refCode: await readRefCode(),
+      giftRecipientName: isGift ? giftRecipientName : null,
+      giftMessage: isGift ? parsed.data.giftMessage || null : null,
     });
     orderId = order.orderId;
   } catch (error) {

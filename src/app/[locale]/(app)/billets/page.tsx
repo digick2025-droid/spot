@@ -3,12 +3,14 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
-import { TicketIcon } from "@/components/icons";
+import { GiftIcon, TicketIcon } from "@/components/icons";
 import { Sticker } from "@/components/sticker";
+import { GiftShare } from "@/components/gift-share";
 import { requireProfile } from "@/lib/auth/dal";
 import { listMyTickets } from "@/lib/db/tickets";
 import { formatEventDate } from "@/lib/format";
 import { posterUrl } from "@/lib/posters";
+import { getSiteUrl } from "@/lib/site-url";
 
 const FALLBACK_GRADIENT = "linear-gradient(135deg,#FF6B35,#C2410C)";
 
@@ -26,7 +28,14 @@ export default async function MyTicketsPage({
 
   const activeLocale = (await getLocale()) as Locale;
   const t = await getTranslations("tickets");
+  const tGift = await getTranslations("gift");
   const tickets = await listMyTickets();
+
+  // Le lien d'un cadeau non réclamé reste ici : c'est là qu'on revient
+  // quand le premier envoi s'est perdu dans une conversation.
+  const giftBase = `${getSiteUrl()}${
+    activeLocale === routing.defaultLocale ? "" : `/${activeLocale}`
+  }/cadeau`;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-6">
@@ -52,6 +61,10 @@ export default async function MyTicketsPage({
         <ul className="mt-6 flex flex-col gap-3">
           {tickets.map((ticket) => {
             const poster = posterUrl(ticket.events.poster_path);
+            // Offert, mais pas encore réclamé : le billet est toujours à
+            // nous, et il attend d'être envoyé.
+            const pendingGift =
+              ticket.gift_claim_code !== null && ticket.claimed_at === null;
             return (
               <li key={ticket.id}>
                 <Link
@@ -97,16 +110,39 @@ export default async function MyTicketsPage({
 
                   <span
                     className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                      ticket.status === "valid"
-                        ? "bg-success/15 text-success"
-                        : ticket.status === "used"
-                          ? "bg-white/10 text-mist"
-                          : "bg-danger/15 text-danger"
+                      pendingGift
+                        ? "bg-brand/15 text-brand-bright"
+                        : ticket.status === "valid"
+                          ? "bg-success/15 text-success"
+                          : ticket.status === "used"
+                            ? "bg-white/10 text-mist"
+                            : "bg-danger/15 text-danger"
                     }`}
                   >
-                    {t(ticket.status)}
+                    {pendingGift ? tGift("waiting") : t(ticket.status)}
                   </span>
                 </Link>
+
+                {/* Hors du lien : deux zones cliquables imbriquées ne
+                    peuvent pas cohabiter, et c'est le partage qu'on vient
+                    chercher ici, pas le QR d'un billet qu'on donne. */}
+                {pendingGift && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 px-1">
+                    <span className="inline-flex items-center gap-1.5 text-[12px] text-mist">
+                      <GiftIcon size={14} strokeWidth={2.2} aria-hidden />
+                      {ticket.gift_recipient_name
+                        ? tGift("offeredTo", {
+                            name: ticket.gift_recipient_name,
+                          })
+                        : tGift("shareTitle")}
+                    </span>
+                    <GiftShare
+                      url={`${giftBase}/${ticket.gift_claim_code}`}
+                      eventTitle={ticket.events.title}
+                      className="bg-white/5 text-fog ring-1 ring-inset ring-white/12 hover:text-white"
+                    />
+                  </div>
+                )}
               </li>
             );
           })}

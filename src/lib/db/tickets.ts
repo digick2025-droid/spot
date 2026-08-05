@@ -6,6 +6,14 @@ export type TicketListItem = {
   code: string;
   status: "valid" | "used" | "void";
   scanned_at: string | null;
+  /**
+   * Le cadeau, du point de vue de celui qui l'a payé : tant que personne
+   * n'a réclamé, le billet est encore le sien et il en porte le lien.
+   * Réclamé, il change de porteur et disparaît de sa liste.
+   */
+  gift_claim_code: string | null;
+  gift_recipient_name: string | null;
+  claimed_at: string | null;
   ticket_types: { name_fr: string; name_en: string };
   events: {
     id: string;
@@ -25,6 +33,7 @@ export type TicketDetail = TicketListItem & { secret: string };
 
 const LIST_COLUMNS = `
   id, code, status, scanned_at,
+  gift_claim_code, gift_recipient_name, claimed_at,
   ticket_types ( name_fr, name_en ),
   events ( id, slug, title, city, venue, starts_at, glyph, gradient, poster_path )
 `;

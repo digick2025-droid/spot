@@ -46,6 +46,7 @@ export {
   Smile as StickerIcon,
   LoaderCircle as LoadingIcon,
   QrCode as QrIcon,
+  Gift as GiftIcon,
   Smartphone as MobileMoneyIcon,
   Hourglass as PendingIcon,
   TriangleAlert as AlertIcon,

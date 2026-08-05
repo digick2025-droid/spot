@@ -3,11 +3,14 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { AlertIcon, DoneIcon, PendingIcon } from "@/components/icons";
+import { AlertIcon, DoneIcon, GiftIcon, PendingIcon } from "@/components/icons";
 import { Sticker, type StickerTone } from "@/components/sticker";
+import { GiftLink, GiftShare } from "@/components/gift-share";
 import { requireProfile } from "@/lib/auth/dal";
 import { getOrderForUser } from "@/lib/db/orders";
+import { listOrderGifts } from "@/lib/db/gifts";
 import { formatPriceXaf } from "@/lib/format";
+import { getSiteUrl } from "@/lib/site-url";
 import { simulatePaymentWebhook } from "@/lib/payments/dev-actions";
 import { AutoRefresh } from "./auto-refresh";
 
@@ -26,6 +29,12 @@ export default async function OrderPage({
   if (!order) notFound();
 
   const t = await getTranslations("checkout");
+  const tGift = await getTranslations("gift");
+
+  // Les cadeaux n'existent qu'une fois la commande payée : avant, aucun
+  // billet n'a été émis, donc aucun lien à envoyer.
+  const gifts = order.status === "paid" ? await listOrderGifts(order.id) : [];
+  const giftBase = `${getSiteUrl()}${locale === routing.defaultLocale ? "" : `/${locale}`}/cadeau`;
 
   /**
    * L'attente est le cas le plus fréquent — on vient de composer son code
@@ -112,10 +121,69 @@ export default async function OrderPage({
           </div>
         </dl>
 
+        {/* Le cadeau payé ne vaut rien tant qu'il n'est pas envoyé : le
+            lien passe donc avant le bouton « Mes billets ». Un lien par
+            place offerte — on peut offrir deux entrées à deux personnes
+            différentes. */}
+        {gifts.length > 0 && (
+          <section className="sheen mt-8 rounded-sheet bg-surface p-5">
+            <h2 className="font-display flex items-center gap-2 text-[16px] font-extrabold">
+              <GiftIcon size={17} strokeWidth={2.4} aria-hidden />
+              {tGift("shareTitle")}
+            </h2>
+            <p className="mt-2 text-[13px] leading-relaxed text-mist">
+              {tGift("shareHint")}
+            </p>
+
+            <ul className="mt-4 flex flex-col gap-4">
+              {gifts.map((gift) => {
+                const url = `${giftBase}/${gift.claimCode}`;
+                return (
+                  <li key={gift.ticketId}>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="min-w-0 truncate text-[13px] font-semibold">
+                        {gift.recipientName
+                          ? tGift("offeredTo", { name: gift.recipientName })
+                          : tGift("shareTitle")}
+                      </span>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                          gift.claimed
+                            ? "bg-success/15 text-success"
+                            : "bg-white/10 text-mist"
+                        }`}
+                      >
+                        {gift.claimed
+                          ? tGift("claimedTag")
+                          : tGift("waiting")}
+                      </span>
+                    </div>
+
+                    {!gift.claimed && (
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                        <GiftShare
+                          url={url}
+                          eventTitle={gift.eventTitle}
+                          className="grad-ember glow-brand text-white"
+                        />
+                        <GiftLink url={url} />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
         {order.status === "paid" && (
           <Link
             href="/billets"
-            className="press grad-ember glow-brand font-display mt-6 block rounded-2xl px-4 py-3.5 text-center text-[15px] font-extrabold text-white"
+            className={`press font-display mt-6 block rounded-2xl px-4 py-3.5 text-center text-[15px] font-extrabold ${
+              gifts.length > 0
+                ? "bg-surface-high ring-1 ring-inset ring-white/10"
+                : "grad-ember glow-brand text-white"
+            }`}
           >
             {t("seeTickets")}
           </Link>

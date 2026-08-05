@@ -16,7 +16,7 @@ export default async function CheckoutPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
-  searchParams: Promise<{ billet?: string; quantite?: string }>;
+  searchParams: Promise<{ billet?: string; quantite?: string; cadeau?: string }>;
 }) {
   const { locale, slug } = await params;
   if (hasLocale(routing.locales, locale)) {
@@ -26,7 +26,10 @@ export default async function CheckoutPage({
   // Redirige vers la connexion si nécessaire.
   const profile = await requireProfile();
 
-  const { billet, quantite } = await searchParams;
+  // Le drapeau du cadeau seulement : à qui l'on offre se saisit dans le
+  // formulaire, jamais dans l'adresse.
+  const { billet, quantite, cadeau } = await searchParams;
+  const isGift = cadeau === "1";
   const event = await getEventBySlug(slug);
   if (!event) notFound();
 
@@ -125,6 +128,7 @@ export default async function CheckoutPage({
           quantity={quantity}
           totalLabel={formatPriceXaf(total)}
           defaultPhone={profile.phone ?? ""}
+          isGift={isGift}
         />
       </div>
     </main>

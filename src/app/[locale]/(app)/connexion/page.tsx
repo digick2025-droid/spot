@@ -7,17 +7,25 @@ import { OtpForm } from "./otp-form";
 
 export default async function ConnexionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ suite?: string }>;
 }) {
   const { locale } = await params;
   if (hasLocale(routing.locales, locale)) {
     setRequestLocale(locale);
   }
 
+  // `suite` dit où reprendre une fois connecté. Un chemin interne, ou
+  // rien : la même règle est réappliquée côté action, qui seule décide.
+  const { suite } = await searchParams;
+  const next =
+    suite?.startsWith("/") && !suite.startsWith("//") ? suite : undefined;
+
   // Déjà connecté : rien à faire ici.
   if (await getUser()) {
-    redirect({ href: "/accueil", locale });
+    redirect({ href: next ?? "/accueil", locale });
   }
 
   const t = await getTranslations("auth");
@@ -44,7 +52,7 @@ export default async function ConnexionPage({
           {t("subtitle")}
         </p>
 
-        <OtpForm />
+        <OtpForm next={next} />
       </div>
     </main>
   );
