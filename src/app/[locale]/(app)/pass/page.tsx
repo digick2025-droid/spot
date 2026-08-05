@@ -11,11 +11,31 @@ import { formatEventDateShort } from "@/lib/format";
 
 const FALLBACK_GRADIENT = "linear-gradient(135deg,#FF6B35,#C2410C)";
 
-/** Chaque palier a sa couleur : le passeport doit se reconnaître d'un coup d'œil. */
-const LEVEL_GRADIENT: Record<PassLevel, string> = {
-  bronze: "linear-gradient(135deg,#B45309,#78350F)",
-  silver: "linear-gradient(135deg,#94A3B8,#475569)",
-  gold: "linear-gradient(135deg,#F59E0B,#B45309)",
+/**
+ * Le métal de chaque palier.
+ *
+ * Un aplat de couleur ne fait pas une carte de membre : le métal se
+ * reconnaît à ses bandes — sombre, clair, éclat, sombre à nouveau —
+ * selon l'angle de la lumière. D'où cinq arrêts plutôt que deux, avec
+ * un éclat franc autour de 46 %.
+ *
+ * Il ne sert jamais de fond : la carte reste sombre, et le métal
+ * n'apparaît qu'en halo, en liseré et sur les chiffres. C'est ce qui
+ * sépare une carte premium d'un rectangle colorié.
+ */
+const LEVEL_METAL: Record<PassLevel, string> = {
+  bronze:
+    "linear-gradient(135deg,#4A2409 0%,#C97B3C 28%,#F0B27A 46%,#A8541F 68%,#3D1D07 100%)",
+  silver:
+    "linear-gradient(135deg,#333C49 0%,#A0AEC0 28%,#EDF2F7 46%,#8595A8 68%,#2A323D 100%)",
+  gold: "linear-gradient(135deg,#5A3706 0%,#D9A22B 28%,#F7DE8B 46%,#C88A1E 68%,#4A2D05 100%)",
+};
+
+/** L'éclat du palier, pour un liseré ou une pastille d'un seul ton. */
+const LEVEL_ACCENT: Record<PassLevel, string> = {
+  bronze: "#E08A4A",
+  silver: "#C6D2E0",
+  gold: "#F0C455",
 };
 
 /**
@@ -84,31 +104,93 @@ export default async function PassPage({
           <>
             {/* ── Carte du passeport ─────────────────────────────────── */}
             <section
-              className="sheen relative mt-6 overflow-hidden rounded-sheet p-6 text-white shadow-[0_24px_60px_-24px_rgb(0_0_0/0.9)]"
-              style={{ background: LEVEL_GRADIENT[pass.level] }}
+              className="relative mt-6 overflow-hidden rounded-sheet bg-surface-high p-6 text-white"
+              style={{
+                // Les deux ombres tiennent dans la même déclaration : une
+                // seconde `box-shadow` écraserait la première, et la carte
+                // perdrait soit son liseré, soit sa profondeur.
+                boxShadow: `inset 0 0 0 1px ${LEVEL_ACCENT[pass.level]}40, 0 28px 70px -26px rgb(0 0 0 / 0.95)`,
+              }}
             >
-              <div className="flex items-center gap-2">
+              {/* Le métal, en nappe : il éclaire la carte par le coin
+                  plutôt que de la recouvrir. */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full opacity-60 blur-[62px]"
+                style={{ background: LEVEL_METAL[pass.level] }}
+              />
+              {/* Le balayage de lumière d'une carte tenue en main. */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.07]"
+                style={{
+                  background:
+                    "linear-gradient(115deg, transparent 32%, #FFFFFF 47%, transparent 62%)",
+                }}
+              />
+
+              <div className="relative flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="inline-block h-[9px] w-[9px] rounded-full"
+                    style={{ background: LEVEL_ACCENT[pass.level] }}
+                  />
+                  <span className="font-display text-[13px] font-extrabold tracking-[0.2em]">
+                    SPOT PASS
+                  </span>
+                </div>
+
+                {/* Le palier, gravé dans le métal. */}
                 <span
-                  aria-hidden
-                  className="inline-block h-[9px] w-[9px] rounded-full bg-white/90"
-                />
-                <span className="font-display text-[13px] font-extrabold tracking-[0.2em]">
-                  SPOT PASS
+                  className="font-display rounded-full px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em]"
+                  style={{
+                    backgroundImage: LEVEL_METAL[pass.level],
+                    color: "#0B0B0F",
+                  }}
+                >
+                  {levelLabel}
                 </span>
               </div>
 
-              <p className="font-display mt-4 text-[56px] font-extrabold leading-none">
+              <p
+                className="font-display relative mt-5 inline-block text-[62px] font-extrabold leading-none"
+                style={{
+                  backgroundImage: LEVEL_METAL[pass.level],
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
                 {pass.points.toLocaleString("fr-FR")}
               </p>
-              <p className="mt-1 text-[13px] text-white/80">{tApp("points")}</p>
+              <p className="relative mt-1 text-[13px] text-mist">
+                {tApp("points")}
+              </p>
 
-              <div className="mt-5 grid grid-cols-3 gap-2">
+              <div className="relative mt-6 grid grid-cols-3 gap-2">
                 <Stat value={pass.eventsLived} label={tApp("eventsLived")} />
                 <Stat value={pass.cities} label={tApp("cities")} />
                 <Stat value={levelLabel} label={tApp("level")} />
               </div>
 
-              <p className="mt-4 text-[12px] text-white/80">
+              {/* La progression, lue d'un trait plutôt que d'une phrase. */}
+              {pass.nextLevelAt !== null && (
+                <div
+                  aria-hidden
+                  className="relative mt-5 h-1.5 overflow-hidden rounded-full bg-white/10"
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.min(100, Math.round((pass.points / pass.nextLevelAt) * 100))}%`,
+                      backgroundImage: LEVEL_METAL[pass.level],
+                    }}
+                  />
+                </div>
+              )}
+
+              <p className="relative mt-3 text-[12px] text-mist">
                 {pass.nextLevelAt === null
                   ? t("maxLevel")
                   : t("nextLevel", {
@@ -120,7 +202,7 @@ export default async function PassPage({
               </p>
 
               {topCategory && (
-                <p className="mt-2 text-[12px] text-white/80">
+                <p className="relative mt-1.5 text-[12px] text-smoke">
                   {tApp("topCategory")} : {topCategory.emoji}{" "}
                   {activeLocale === "fr"
                     ? topCategory.label_fr
@@ -214,11 +296,11 @@ export default async function PassPage({
 
 function Stat({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="rounded-2xl bg-white/15 px-3 py-2.5 text-center backdrop-blur-sm">
+    <div className="rounded-2xl bg-white/[0.06] px-3 py-2.5 text-center ring-1 ring-inset ring-white/10">
       <div className="font-display text-[17px] font-extrabold leading-tight">
         {value}
       </div>
-      <div className="mt-0.5 text-[11px] text-white/75">{label}</div>
+      <div className="mt-0.5 text-[11px] text-mist">{label}</div>
     </div>
   );
 }

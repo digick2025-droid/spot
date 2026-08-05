@@ -1,16 +1,29 @@
+import type { ReactNode } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import {
+  AdminIcon,
+  CampaignIcon,
+  NextIcon,
+  OrganizerIcon,
+  ProfileIcon,
+  SettingsIcon,
+  SignOutIcon,
+} from "@/components/icons";
 import { requireProfile } from "@/lib/auth/dal";
 import { signOut } from "@/lib/auth/actions";
 import { InstallPrompt } from "@/components/install-prompt";
 import { ProfileForm } from "./profile-form";
 
 /**
- * Écran Profil — version minimale : identité et déconnexion.
- * L'édition du nom, du téléphone et de la langue viendra avec le reste de
- * l'espace participant.
+ * Écran Profil — identité, portes vers les autres espaces, réglages.
+ *
+ * Les trois portes (organisateur, créateur, admin) partagent une seule
+ * forme de ligne : c'est la même promesse à chaque fois — une icône, un
+ * nom, ce qu'on y fait, un chevron. Seule la teinte de l'icône change,
+ * pour qu'on les distingue sans les lire.
  */
 export default async function AccountPage({
   params,
@@ -30,122 +43,129 @@ export default async function AccountPage({
   const tAdmin = await getTranslations("admin");
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-      <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight">
-        {t("profile")}
-      </h1>
+    <main className="relative flex-1 overflow-hidden">
+      <span
+        aria-hidden
+        className="halo inset-x-0 -top-20 h-[240px] opacity-25"
+      />
 
-      <div className="mt-6 flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-5">
-        <span
-          aria-hidden
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent/20 text-2xl"
-        >
-          👤
-        </span>
-        <div className="min-w-0">
-          <p className="font-display truncate text-[15px] font-extrabold">
-            {profile.full_name ?? profile.email}
-          </p>
-          {profile.full_name && (
-            <p className="mt-0.5 truncate text-[13px] text-mist">
-              {profile.email}
-            </p>
-          )}
-        </div>
-      </div>
+      <div className="relative mx-auto w-full max-w-3xl px-5 pb-10 pt-6">
+        <h1 className="font-display text-[30px] font-extrabold uppercase">
+          {t("profile")}
+        </h1>
 
-      <Link
-        href="/organisateur"
-        className="mt-3 flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-5 transition-colors hover:border-brand/50"
-      >
-        <span
-          aria-hidden
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/15 text-xl"
-        >
-          🎪
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="font-display block text-[15px] font-extrabold">
-            {t("orgSpace")}
-          </span>
-          <span className="mt-0.5 block text-[13px] text-mist">
-            {tOrganizer("openSpace")}
-          </span>
-        </span>
-        <span aria-hidden className="text-mist">
-          →
-        </span>
-      </Link>
-
-      <Link
-        href="/creator"
-        className="mt-3 flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-5 transition-colors hover:border-accent/50"
-      >
-        <span
-          aria-hidden
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/15 text-xl"
-        >
-          📣
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="font-display block text-[15px] font-extrabold">
-            {t("infSpace")}
-          </span>
-          <span className="mt-0.5 block text-[13px] text-mist">
-            {tAffiliation("creatorSpace")}
-          </span>
-        </span>
-        <span aria-hidden className="text-mist">
-          →
-        </span>
-      </Link>
-
-      {profile.role === "admin" && (
-        <Link
-          href="/admin"
-          className="mt-3 flex items-center gap-4 rounded-[20px] border border-white/10 bg-card p-5 transition-colors hover:border-white/30"
-        >
+        <div className="sheen mt-6 flex items-center gap-4 rounded-card bg-surface p-5">
           <span
             aria-hidden
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl"
+            className="grad-ember flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
           >
-            🛠
+            <ProfileIcon size={24} strokeWidth={2.2} />
           </span>
-          <span className="min-w-0 flex-1">
-            <span className="font-display block text-[15px] font-extrabold">
-              {tAdmin("title")}
-            </span>
-            <span className="mt-0.5 block text-[13px] text-mist">
-              {tAdmin("readOnlyHint")}
-            </span>
-          </span>
-          <span aria-hidden className="text-mist">
-            →
-          </span>
-        </Link>
-      )}
+          <div className="min-w-0">
+            <p className="font-display truncate text-[15px] font-extrabold">
+              {profile.full_name ?? profile.email}
+            </p>
+            {profile.full_name && (
+              <p className="mt-0.5 truncate text-[13px] text-mist">
+                {profile.email}
+              </p>
+            )}
+          </div>
+        </div>
 
-      <InstallPrompt />
+        <nav className="mt-3 flex flex-col gap-2.5">
+          <SpaceLink
+            href="/organisateur"
+            icon={<OrganizerIcon size={20} strokeWidth={2.2} />}
+            iconClass="bg-brand/15 text-brand-bright"
+            title={t("orgSpace")}
+            hint={tOrganizer("openSpace")}
+          />
 
-      <section className="mt-8">
-        <h2 className="font-display text-[15px] font-extrabold">
-          {t("settings")}
-        </h2>
-        <ProfileForm
-          fullName={profile.full_name ?? ""}
-          phone={profile.phone ?? ""}
-          locale={profile.locale}
-        />
-      </section>
+          <SpaceLink
+            href="/creator"
+            icon={<CampaignIcon size={20} strokeWidth={2.2} />}
+            iconClass="bg-accent/15 text-accent"
+            title={t("infSpace")}
+            hint={tAffiliation("creatorSpace")}
+          />
 
-      <form action={signOut} className="mt-8">
-        <button
-          type="submit"
-          className="w-full rounded-2xl border border-white/10 bg-card px-5 py-3.5 font-display text-[14px] font-extrabold text-danger transition-colors hover:border-danger/50"
-        >
-          {tAuth("signOut")}
-        </button>
-      </form>
+          {profile.role === "admin" && (
+            <SpaceLink
+              href="/admin"
+              icon={<AdminIcon size={20} strokeWidth={2.2} />}
+              iconClass="bg-white/10 text-fog"
+              title={tAdmin("title")}
+              hint={tAdmin("readOnlyHint")}
+            />
+          )}
+        </nav>
+
+        <InstallPrompt />
+
+        <section className="mt-8">
+          <h2 className="font-display flex items-center gap-2 text-[15px] font-extrabold">
+            <SettingsIcon size={16} strokeWidth={2.2} aria-hidden />
+            {t("settings")}
+          </h2>
+          <ProfileForm
+            fullName={profile.full_name ?? ""}
+            phone={profile.phone ?? ""}
+            locale={profile.locale}
+          />
+        </section>
+
+        <form action={signOut} className="mt-8">
+          <button
+            type="submit"
+            className="press font-display flex w-full items-center justify-center gap-2 rounded-2xl bg-surface px-5 py-3.5 text-[14px] font-extrabold text-danger ring-1 ring-inset ring-white/10 hover:ring-danger/50"
+          >
+            <SignOutIcon size={16} strokeWidth={2.4} aria-hidden />
+            {tAuth("signOut")}
+          </button>
+        </form>
+      </div>
     </main>
+  );
+}
+
+/** Une porte vers un autre espace du produit. */
+function SpaceLink({
+  href,
+  icon,
+  iconClass,
+  title,
+  hint,
+}: {
+  href: string;
+  icon: ReactNode;
+  iconClass: string;
+  title: string;
+  hint: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="press sheen flex items-center gap-4 rounded-card bg-surface p-4 transition-colors hover:bg-surface-high"
+    >
+      <span
+        aria-hidden
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${iconClass}`}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="font-display block text-[15px] font-extrabold">
+          {title}
+        </span>
+        <span className="mt-0.5 block text-[13px] text-mist">{hint}</span>
+      </span>
+      <NextIcon
+        size={18}
+        strokeWidth={2.4}
+        className="shrink-0 text-smoke"
+        aria-hidden
+      />
+    </Link>
   );
 }

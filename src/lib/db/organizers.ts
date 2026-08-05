@@ -21,6 +21,7 @@ export type OrganizerEvent = {
   starts_at: string;
   glyph: string | null;
   gradient: string | null;
+  poster_path: string | null;
   ticket_types: { price_xaf: number }[];
 };
 
@@ -110,7 +111,7 @@ async function isFollowing(organizerId: string): Promise<boolean> {
 }
 
 const ORGANIZER_EVENT_COLUMNS =
-  "id, slug, title, city, venue, starts_at, glyph, gradient, ticket_types ( price_xaf )";
+  "id, slug, title, city, venue, starts_at, glyph, gradient, poster_path, ticket_types ( price_xaf )";
 
 /**
  * Événements publiés d'un organisateur, séparés en « à venir » et

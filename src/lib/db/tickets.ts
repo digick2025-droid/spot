@@ -16,6 +16,7 @@ export type TicketListItem = {
     starts_at: string;
     glyph: string | null;
     gradient: string | null;
+    poster_path: string | null;
   };
 };
 
@@ -25,7 +26,7 @@ export type TicketDetail = TicketListItem & { secret: string };
 const LIST_COLUMNS = `
   id, code, status, scanned_at,
   ticket_types ( name_fr, name_en ),
-  events ( id, slug, title, city, venue, starts_at, glyph, gradient )
+  events ( id, slug, title, city, venue, starts_at, glyph, gradient, poster_path )
 `;
 
 /**

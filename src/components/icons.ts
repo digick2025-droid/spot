@@ -45,4 +45,12 @@ export {
   Copy as CopyIcon,
   Smile as StickerIcon,
   LoaderCircle as LoadingIcon,
+  QrCode as QrIcon,
+  Smartphone as MobileMoneyIcon,
+  Hourglass as PendingIcon,
+  TriangleAlert as AlertIcon,
+  Star as PointsIcon,
+  Settings as SettingsIcon,
+  LogOut as SignOutIcon,
+  Wrench as AdminIcon,
 } from "lucide-react";

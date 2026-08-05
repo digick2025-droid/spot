@@ -1,6 +1,15 @@
+import type { ComponentType } from "react";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing, type Locale } from "@/i18n/routing";
+import {
+  AlertIcon,
+  CampaignIcon,
+  NotificationIcon,
+  PointsIcon,
+  RevenueIcon,
+} from "@/components/icons";
+import { Sticker } from "@/components/sticker";
 import { requireProfile } from "@/lib/auth/dal";
 import {
   getMyNotifications,
@@ -11,11 +20,19 @@ import { markAllNotificationsRead } from "@/lib/db/notification-actions";
 import { payoutFailureLabel } from "@/lib/db/payout-state";
 import { formatEventDate, formatPriceXaf } from "@/lib/format";
 
-const ICON: Record<NotificationType, string> = {
-  points_earned: "⭐",
-  payout_paid: "💸",
-  payout_failed: "⚠️",
-  creator_joined: "📣",
+/**
+ * Chaque type de notification a son icône et sa teinte : dans une liste
+ * lue de haut en bas, la couleur dit déjà s'il s'agit d'un gain, d'un
+ * versement ou d'un incident, avant même la première ligne de texte.
+ */
+const LOOK: Record<
+  NotificationType,
+  { Icon: ComponentType<{ size?: number; strokeWidth?: number }>; tint: string }
+> = {
+  points_earned: { Icon: PointsIcon, tint: "bg-brand/15 text-brand-bright" },
+  payout_paid: { Icon: RevenueIcon, tint: "bg-success/15 text-success" },
+  payout_failed: { Icon: AlertIcon, tint: "bg-danger/15 text-danger" },
+  creator_joined: { Icon: CampaignIcon, tint: "bg-accent/15 text-accent" },
 };
 
 export default async function NotificationsPage({
@@ -36,40 +53,50 @@ export default async function NotificationsPage({
   const hasUnread = notifications.some((n) => n.readAt === null);
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="font-display text-3xl font-extrabold uppercase tracking-tight">
-          {t("title")}
-        </h1>
-        {hasUnread && (
-          <form action={markAllNotificationsRead}>
-            <button
-              type="submit"
-              className="shrink-0 rounded-full border border-white/15 px-4 py-2 text-[12px] font-bold text-mist hover:border-brand hover:text-brand"
-            >
-              {t("markAllRead")}
-            </button>
-          </form>
+    <main className="relative flex-1 overflow-hidden">
+      <span
+        aria-hidden
+        className="halo inset-x-0 -top-20 h-[240px] opacity-25"
+      />
+
+      <div className="relative mx-auto w-full max-w-3xl px-5 pb-10 pt-6">
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="font-display text-[30px] font-extrabold uppercase">
+            {t("title")}
+          </h1>
+          {hasUnread && (
+            <form action={markAllNotificationsRead}>
+              <button
+                type="submit"
+                className="press shrink-0 rounded-full px-4 py-2 text-[12px] font-bold text-mist ring-1 ring-inset ring-white/12 hover:text-white"
+              >
+                {t("markAllRead")}
+              </button>
+            </form>
+          )}
+        </div>
+
+        {notifications.length === 0 ? (
+          <div className="sheen mt-8 rounded-sheet bg-surface p-8 text-center">
+            <Sticker tone="ember" size="lg" className="mx-auto">
+              <NotificationIcon size={30} strokeWidth={2.2} />
+            </Sticker>
+            <p className="mt-5 text-[15px] font-semibold">{t("empty")}</p>
+            <p className="mt-2 text-[13px] text-mist">{t("emptyHint")}</p>
+          </div>
+        ) : (
+          <ul className="mt-6 flex flex-col gap-3">
+            {notifications.map((notification) => (
+              <li key={notification.id}>
+                <NotificationRow
+                  notification={notification}
+                  locale={activeLocale}
+                />
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-
-      {notifications.length === 0 ? (
-        <div className="mt-8 rounded-[20px] border border-white/10 bg-card p-8 text-center">
-          <div className="text-4xl" aria-hidden>
-            🔔
-          </div>
-          <p className="mt-4 text-[15px] font-semibold">{t("empty")}</p>
-          <p className="mt-2 text-[13px] text-mist">{t("emptyHint")}</p>
-        </div>
-      ) : (
-        <ul className="mt-6 flex flex-col gap-3">
-          {notifications.map((notification) => (
-            <li key={notification.id}>
-              <NotificationRow notification={notification} locale={activeLocale} />
-            </li>
-          ))}
-        </ul>
-      )}
     </main>
   );
 }
@@ -121,17 +148,21 @@ async function NotificationRow({
       break;
   }
 
+  const { Icon, tint } = LOOK[notification.type];
+
   return (
     <div
-      className={`flex items-start gap-4 rounded-[20px] border p-4 ${
-        unread ? "border-brand/40 bg-card" : "border-white/10 bg-card/60"
+      className={`sheen flex items-start gap-4 rounded-card p-4 ${
+        unread
+          ? "bg-surface-high ring-1 ring-inset ring-brand/40"
+          : "bg-surface opacity-80"
       }`}
     >
       <span
         aria-hidden
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl"
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${tint}`}
       >
-        {ICON[notification.type]}
+        <Icon size={20} strokeWidth={2.2} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
